@@ -51,3 +51,6 @@ uploads/
 # Misc
 *.tmp
 *.bak
+
+# Custom ignores
+github/copilot-instructions.md
