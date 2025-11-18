@@ -11,6 +11,52 @@ El objetivo es construir una tienda online moderna, escalable y mantenible, desa
 
 ---
 
+## Estado actual del proyecto
+
+### Backend (NestJS) - ✅ Configurado
+- **Base de datos:** Conectada a Neon (PostgreSQL) mediante Prisma ORM
+- **Modelos Prisma implementados:**
+  - `User` (id, email, name, password, role: USER/ADMIN, orders, timestamps)
+  - `Product` (id, name, description, price, stock, orderItems, timestamps)
+  - `Order` (id, user, items, total, status: PENDING/PAID/SHIPPED/CANCELLED, timestamps)
+  - `OrderItem` (id, order, product, quantity, price)
+- **Servicios configurados:**
+  - `PrismaService` (gestión de conexión DB con lifecycle hooks)
+  - `PrismaModule` (módulo global para inyección en toda la app)
+  - `ProductsModule`, `UsersModule`, `OrdersModule` (módulos con DTOs, validación y endpoints CRUD)
+  - `OrdersService` crea órdenes en transacciones (`prisma.$transaction`) y guarda `OrderItem` con el precio en el momento de la compra
+- **Endpoints básicos funcionando:**
+  - `GET /` → mensaje de bienvenida
+  - `GET /health` → health check
+  - `GET /users` → lista de usuarios desde DB
+- **Seed script:** `pnpm run seed` crea datos de ejemplo (usuario admin, 2 productos, 1 orden)
+- **Configuración:**
+  - TypeScript en modo CommonJS (compatible con Nest)
+  - Variables de entorno cargadas con `dotenv`
+  - Cliente Prisma generado en `backend/generated/prisma/`
+  - Puerto por defecto: 3000
+
+### Frontend (Next.js) - ⏳ Pendiente
+- Estructura base creada, aún no configurado
+
+### Próximos pasos sugeridos
+2. **Backend:**
+   - Crear módulos separados: `UsersModule`, `ProductsModule`, `OrdersModule`
+   - Implementar autenticación JWT con guards y bcrypt
+   - Añadir DTOs y validación con `class-validator`
+   - Crear endpoints CRUD completos para productos y órdenes
+  - Notas recientes: se modularizó el backend (`ProductsModule`, `UsersModule`, `OrdersModule`) y se refactorizó `OrdersService.create` para usar consultas por lote y transacciones.
+  - Se añadió una solución temporal para warnings del analizador de tipos de Prisma: se permite la importación del cliente generado y se ajustó `tsconfig.json` (`typeRoots`) para exponer los tipos generados; además se añadieron suppression comments en `orders.service.ts` para evitar errores del linter mientras se consolida la tipificación del cliente.
+2. **Frontend:**
+   - Configurar conexión con API backend
+   - Implementar páginas: home, catálogo, detalle producto, carrito, checkout
+   - Crear componentes reutilizables (ProductCard, Navbar, etc.)
+3. **Infraestructura:**
+   - Configurar CI/CD con GitHub Actions
+   - Preparar deployment en Vercel (frontend) y Render/Railway (backend)
+
+---
+
 ## Estructura del repositorio
 Backend - NestJS
 backend/
@@ -66,6 +112,9 @@ Copilot debe ayudar a:
 
 ## Reglas y convenciones
 - Usar **TypeScript** en todo el proyecto.  
+- Actualizar el `copilot-instructions.md` con cada cambio 
+relevante.
+- Usar **ESLint** y **Prettier** para mantener estilo consistente.
 - Evitar lógica de negocio en controladores; delegarla a servicios.  
 - Usar **DTOs** y **class-validator** en NestJS.  
 - En Next.js, separar lógica de UI y data fetching (`/lib/api.ts`).  
