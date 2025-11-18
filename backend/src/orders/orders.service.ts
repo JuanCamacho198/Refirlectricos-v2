@@ -31,12 +31,18 @@ export class OrdersService {
 
     // Preparar los datos de los items y calcular total
     let total = 0;
-    const orderItemsData: { productId: string; quantity: number; price: number }[] = [];
+    const orderItemsData: {
+      productId: string;
+      quantity: number;
+      price: number;
+    }[] = [];
 
     for (const item of items) {
-      const product = productsMap.get(item.productId) as Product | undefined;
+      const product = productsMap.get(item.productId);
       if (!product) {
-        throw new NotFoundException(`Product with ID ${item.productId} not found`);
+        throw new NotFoundException(
+          `Product with ID ${item.productId} not found`,
+        );
       }
 
       // Aquí podríamos verificar stock y lanzar error si no hay suficiente
@@ -106,8 +112,8 @@ export class OrdersService {
     // Nota: Actualizar una orden es complejo si cambian los items (recalcular total, stock, etc.)
     // Por simplicidad, aquí permitimos actualizar estado u otros campos simples.
     // Si se actualizan items, requeriría lógica adicional.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { items, ...data } = updateOrderDto;
-    
     return this.prisma.order.update({
       where: { id },
       data: data,

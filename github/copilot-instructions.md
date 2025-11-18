@@ -114,7 +114,6 @@ Copilot debe ayudar a:
 - Usar **TypeScript** en todo el proyecto.  
 - Actualizar el `copilot-instructions.md` con cada cambio 
 relevante.
-- Usar **ESLint** y **Prettier** para mantener estilo consistente.
 - Evitar lógica de negocio en controladores; delegarla a servicios.  
 - Usar **DTOs** y **class-validator** en NestJS.  
 - En Next.js, separar lógica de UI y data fetching (`/lib/api.ts`).  
