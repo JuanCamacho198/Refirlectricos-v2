@@ -2,14 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
-import Navbar from '@/components/Navbar';
-import Link from 'next/link';
+import Navbar from '@/components/layout/Navbar';
+import ProductCard from '@/components/features/products/ProductCard';
 
 interface Product {
   id: string;
   name: string;
   description: string;
   price: number;
+  image_url?: string;
+  category?: string;
 }
 
 export default function Home() {
@@ -34,28 +36,25 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">Productos Destacados</h1>
-          
-          {loading ? (
-            <p>Cargando productos...</p>
-          ) : (
-            <div className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
-              {products.map((product) => (
-                <Link key={product.id} href={`/products/${product.id}`} className="group">
-                  <div className="w-full aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden xl:aspect-w-7 xl:aspect-h-8">
-                    <div className="h-full w-full bg-gray-300 flex items-center justify-center text-gray-500">
-                      Imagen
-                    </div>
-                  </div>
-                  <h3 className="mt-4 text-sm text-gray-700">{product.name}</h3>
-                  <p className="mt-1 text-lg font-medium text-gray-900">${product.price}</p>
-                </Link>
-              ))}
-            </div>
-          )}
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Productos Destacados</h1>
+          <p className="mt-2 text-gray-600">Encuentra los mejores repuestos para refrigeración.</p>
         </div>
+          
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-80 bg-gray-200 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );
