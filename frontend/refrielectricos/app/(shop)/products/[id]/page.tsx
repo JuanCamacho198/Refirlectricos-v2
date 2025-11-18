@@ -96,7 +96,7 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -104,8 +104,8 @@ export default function ProductDetailPage() {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Producto no encontrado</h1>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center transition-colors">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Producto no encontrado</h1>
         <Link href="/">
           <Button variant="outline">Volver a la tienda</Button>
         </Link>
@@ -116,24 +116,24 @@ export default function ProductDetailPage() {
   const images = product.images_url || (product.image_url ? [product.image_url] : []);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumbs */}
-        <nav className="flex mb-8 text-sm text-gray-500">
-          <Link href="/" className="hover:text-blue-600">Inicio</Link>
+        <nav className="flex mb-8 text-sm text-gray-500 dark:text-gray-400">
+          <Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400">Inicio</Link>
           <ChevronRight size={16} className="mx-2" />
-          <Link href="/products" className="hover:text-blue-600">Productos</Link>
+          <Link href="/products" className="hover:text-blue-600 dark:hover:text-blue-400">Productos</Link>
           <ChevronRight size={16} className="mx-2" />
-          <span className="text-gray-900 font-medium truncate">{product.name}</span>
+          <span className="text-gray-900 dark:text-white font-medium truncate">{product.name}</span>
         </nav>
 
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden transition-colors">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
             {/* Galería de Imágenes */}
             <div className="space-y-4">
               <div 
                 ref={containerRef}
-                className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-zoom-in border border-gray-200"
+                className="relative aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden cursor-zoom-in border border-gray-200 dark:border-gray-600"
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
               >
@@ -146,7 +146,7 @@ export default function ProductDetailPage() {
                     className="object-contain transition-transform duration-200 ease-out"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
                     Sin imagen
                   </div>
                 )}
@@ -159,14 +159,14 @@ export default function ProductDetailPage() {
                       key={index}
                       onClick={() => setMainImage(img)}
                       className={`relative w-20 h-20 shrink-0 rounded-md overflow-hidden border-2 transition-all ${
-                        mainImage === img ? 'border-blue-600 ring-2 ring-blue-100' : 'border-gray-200 hover:border-gray-300'
+                        mainImage === img ? 'border-blue-600 ring-2 ring-blue-100 dark:ring-blue-900' : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                       }`}
                     >
                       <Image
                         src={img}
                         alt={`Vista ${index + 1}`}
                         fill
-                        className="object-contain bg-white"
+                        className="object-contain bg-white dark:bg-gray-700"
                       />
                     </button>
                   ))}
@@ -176,25 +176,25 @@ export default function ProductDetailPage() {
 
             {/* Información del Producto */}
             <div className="flex flex-col">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{product.name}</h1>
               
               <div className="flex items-center gap-4 mb-6">
-                <span className="text-3xl font-bold text-blue-600">
+                <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                   ${Number(product.price).toLocaleString()}
                 </span>
                 {product.stock > 0 ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
                     Stock disponible: {product.stock}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
                     Agotado
                   </span>
                 )}
               </div>
 
-              <div className="prose prose-sm text-gray-600 mb-8">
-                <h3 className="text-sm font-medium text-gray-900 mb-2">Descripción</h3>
+              <div className="prose prose-sm text-gray-600 dark:text-gray-300 mb-8">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Descripción</h3>
                 <p>{product.description || 'Sin descripción disponible.'}</p>
               </div>
 
@@ -223,12 +223,12 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Métodos de pago (Simulados) */}
-                <div className="pt-6 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 mb-3 font-medium">Métodos de pago aceptados</p>
+                <div className="pt-6 border-t border-gray-100 dark:border-gray-700">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-3 font-medium">Métodos de pago aceptados</p>
                   <div className="flex gap-3 opacity-60 grayscale hover:grayscale-0 transition-all">
-                    <div className="h-8 w-12 bg-gray-200 rounded flex items-center justify-center text-[10px] font-bold text-gray-500">VISA</div>
-                    <div className="h-8 w-12 bg-gray-200 rounded flex items-center justify-center text-[10px] font-bold text-gray-500">MC</div>
-                    <div className="h-8 w-12 bg-gray-200 rounded flex items-center justify-center text-[10px] font-bold text-gray-500">PSE</div>
+                    <div className="h-8 w-12 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center text-[10px] font-bold text-gray-500 dark:text-gray-400">VISA</div>
+                    <div className="h-8 w-12 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center text-[10px] font-bold text-gray-500 dark:text-gray-400">MC</div>
+                    <div className="h-8 w-12 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center text-[10px] font-bold text-gray-500 dark:text-gray-400">PSE</div>
                   </div>
                 </div>
               </div>

@@ -96,9 +96,9 @@ export default function RegisterForm() {
         {loading ? 'Registrando...' : 'Crear cuenta'}
       </Button>
 
-      <div className="text-center text-sm text-gray-600">
+      <div className="text-center text-sm text-gray-600 dark:text-gray-400">
         ¿Ya tienes una cuenta?{' '}
-        <Link href="/login" className="text-blue-600 hover:underline font-medium">
+        <Link href="/login" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
           Inicia sesión
         </Link>
       </div>

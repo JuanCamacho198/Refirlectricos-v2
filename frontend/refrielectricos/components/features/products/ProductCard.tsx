@@ -50,8 +50,8 @@ export default function ProductCard({ product }: ProductCardProps) {
     <Link href={`/products/${product.id}`} className="group block h-full">
       <Card className="h-full flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md relative">
         {/* Imagen */}
-        <div className="relative w-full pt-[70%] bg-gray-100 overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center text-gray-400 bg-gray-50">
+        <div className="relative w-full pt-[70%] bg-gray-100 dark:bg-gray-700 overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800">
             {product.image_url ? (
               <Image
                 src={product.image_url}
@@ -67,27 +67,27 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Botón Favorito */}
           <button
             onClick={handleToggleFavorite}
-            className="absolute top-3 right-3 p-2 rounded-full bg-white/90 shadow-sm hover:bg-red-50 transition-colors z-10"
+            className="absolute top-3 right-3 p-2 rounded-full bg-white/90 dark:bg-gray-900/90 shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors z-10"
           >
             <Heart
               size={20}
-              className={isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}
+              className={isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400 dark:text-gray-400'}
             />
           </button>
         </div>
 
         {/* Info */}
         <div className="p-4 flex flex-col grow text-center">
-          <h3 className="text-base font-semibold text-gray-800 line-clamp-2 mb-1 group-hover:text-blue-600 transition-colors">
+          <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 line-clamp-2 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
             {product.name}
           </h3>
           
           {product.category && (
-            <p className="text-xs text-gray-500 mb-3">{product.category}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{product.category}</p>
           )}
           
           <div className="mt-auto">
-            <p className="text-lg font-bold text-blue-600 mb-3">
+            <p className="text-lg font-bold text-blue-600 dark:text-blue-400 mb-3">
               ${Number(product.price).toLocaleString()}
             </p>
             

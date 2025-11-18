@@ -203,12 +203,25 @@ Basada en el rubro de "Refrigeración y Electricidad", buscamos transmitir confi
 | **Background** | `bg-gray-50` | `#F9FAFB` | Fondo general de la aplicación. |
 | **Surface** | `bg-white` | `#FFFFFF` | Tarjetas, Modales, Navbar. |
 
+### Modo Oscuro (Dark Mode)
+Implementado con `next-themes` y clases `dark:` de Tailwind.
+- **Background:** `#0a0a0a` (`dark:bg-gray-900`)
+- **Surface:** `#1f2937` (`dark:bg-gray-800`)
+- **Text Primary:** `#ffffff` (`dark:text-white`)
+- **Text Secondary:** `#9ca3af` (`dark:text-gray-400`)
+- **Borders:** `#374151` (`dark:border-gray-700`)
+
 ### Tipografía
 - **Fuente Principal:** `Geist Sans` (Default Next.js) o `Inter`.
 - **Pesos:**
   - Regular (400): Texto cuerpo.
   - Medium (500): Botones, Enlaces.
   - Bold (700): Títulos.
+
+### Reglas de Diseño
+- **Modo Oscuro:** Todas las nuevas páginas y componentes deben soportar modo oscuro (`dark:` classes) desde el inicio.
+- **Glassmorphism:** Usar `bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl` para elementos flotantes o sticky.
+- **Transiciones:** Usar `transition-colors duration-300` para cambios de tema suaves.
 
 ---
 
