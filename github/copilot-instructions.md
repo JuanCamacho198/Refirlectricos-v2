@@ -57,7 +57,7 @@ El objetivo es construir una tienda online moderna, escalable y mantenible, desa
    - (Completado) Añadir DTOs y validación con `class-validator`
    - (Completado) Crear endpoints CRUD completos para productos y órdenes
    - Notas recientes: se implementó autenticación completa (JWT, bcrypt, Guards) y se protegieron las rutas sensibles. Se corrigieron problemas de tipos en `tsconfig.json`.
-   
+
 3. **Frontend:**
    - Configurar conexión con API backend (Axios/Fetch)
    - **Fase 1 (UI Base):** Refactorizar `ProductCard`, crear componentes UI (`Button`, `Input`).
@@ -95,8 +95,7 @@ frontend/refrielectricos/
 ├── components/          # Componentes React reutilizables (UI)
 ├── lib/                 # Lógica auxiliar: data fetching (`api.ts`), utilidades
 ├── node_modules/        # Dependencias del frontend
-[cite_start]├── public/              # Assets estáticos (imágenes, favicons) [cite: 160]
-├── src/                 # (Opcional) Código fuente adicional, e.g. hooks personalizados
+├── public/              # Assets estáticos (imágenes, favicons)
 ├── bun.lock             # Archivo de bloqueo de dependencias (si se usa Bun)
 ├── eslint.config.mjs
 ├── next-env.d.ts
