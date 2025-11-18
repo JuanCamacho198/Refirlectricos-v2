@@ -8,7 +8,7 @@ import api from '@/lib/api';
 import Navbar from '@/components/layout/Navbar';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { CheckCircle, MapPin, CreditCard, Loader2 } from 'lucide-react';
+import { MapPin, CreditCard, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 export default function CheckoutPage() {

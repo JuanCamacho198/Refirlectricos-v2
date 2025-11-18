@@ -31,24 +31,33 @@ El objetivo es construir una tienda online moderna, escalable y mantenible, desa
   - `GET /health` → health check
   - `GET /users` → lista de usuarios desde DB
   - `POST /auth/login`, `POST /auth/register` → autenticación
+  - `GET /products`, `GET /products/:id` → catálogo y detalle
+  - `POST /orders` → creación de órdenes (protegido)
 - **Seed script:** `pnpm run seed` crea datos de ejemplo (usuario admin, 2 productos, 1 orden)
 - **Configuración:**
   - TypeScript en modo CommonJS (compatible con Nest)
   - Variables de entorno cargadas con `dotenv`
   - Cliente Prisma generado en `backend/generated/prisma/`
-  - Puerto por defecto: 3000
+  - Puerto: 4000 (CORS habilitado)
   - Autenticación JWT implementada y rutas protegidas con `JwtAuthGuard`
 
-### Frontend (Next.js) - 🚧 En desarrollo
+### Frontend (Next.js) - 🚧 En desarrollo (Avanzado)
 - **Stack:** Next.js 15 (App Router), TailwindCSS.
 - **Utilidades:** 
   - `axios` (Cliente HTTP con interceptores para JWT).
   - `clsx` + `tailwind-merge` (Manejo dinámico de clases).
   - `lucide-react` (Iconografía).
 - **Estado:**
-  - `page.tsx` lista productos desde el backend.
-  - `Navbar` básica implementada.
-  - Configuración de TypeScript ajustada para alias `@/`.
+  - **Contextos:** `AuthContext` (Login/Register/Logout) y `CartContext` (Carrito persistente) implementados.
+  - **Componentes UI:** `Button`, `Input`, `Card`, `Navbar` (con estado de usuario y carrito).
+  - **Páginas Implementadas:**
+    - `page.tsx`: Home con listado de productos.
+    - `(auth)/login` & `(auth)/register`: Flujo completo de autenticación.
+    - `(shop)/products`: Catálogo con filtros por categoría y búsqueda.
+    - `(shop)/products/[id]`: Detalle de producto con galería y zoom.
+    - `(shop)/cart`: Vista de carrito con gestión de cantidades.
+    - `(shop)/checkout`: Formulario de envío y creación de orden.
+    - `(shop)/checkout/success`: Confirmación de compra.
 
 ### Próximos pasos sugeridos
 2. **Backend:**
@@ -59,11 +68,13 @@ El objetivo es construir una tienda online moderna, escalable y mantenible, desa
    - Notas recientes: se implementó autenticación completa (JWT, bcrypt, Guards) y se protegieron las rutas sensibles. Se corrigieron problemas de tipos en `tsconfig.json`.
 
 3. **Frontend:**
-   - Configurar conexión con API backend (Axios/Fetch)
-   - **Fase 1 (UI Base):** Refactorizar `ProductCard`, crear componentes UI (`Button`, `Input`).
-   - **Fase 2 (Estado):** Implementar `CartContext` para manejo global del carrito y persistencia.
-   - **Fase 3 (Páginas):** Detalle de producto (`/products/[id]`), Login/Register (`/auth/*`).
-   - **Fase 4 (Checkout):** Página de resumen de carrito y envío de orden a la API protegida.
+   - (Completado) Configurar conexión con API backend (Axios/Fetch)
+   - (Completado) **Fase 1 (UI Base):** Refactorizar `ProductCard`, crear componentes UI (`Button`, `Input`).
+   - (Completado) **Fase 2 (Estado):** Implementar `CartContext` para manejo global del carrito y persistencia.
+   - (Completado) **Fase 3 (Páginas):** Detalle de producto (`/products/[id]`), Login/Register (`/auth/*`).
+   - (Completado) **Fase 4 (Checkout):** Página de resumen de carrito y envío de orden a la API protegida.
+   - **Fase 5 (Usuario):** Perfil de usuario e historial de órdenes.
+   - **Fase 6 (Admin):** Panel de administración para productos y órdenes.
 
 4. **Infraestructura:**
    - Configurar CI/CD con GitHub Actions

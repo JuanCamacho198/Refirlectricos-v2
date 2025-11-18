@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import Navbar from '@/components/layout/Navbar';
 import ProductCard from '@/components/features/products/ProductCard';
-import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { Search, Filter, X } from 'lucide-react';
 
