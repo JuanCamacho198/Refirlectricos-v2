@@ -13,6 +13,9 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../../generated/prisma/enums';
 
 interface RequestWithUser extends Request {
   user: {
@@ -33,6 +36,8 @@ export class OrdersController {
   }
 
   @Get()
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   findAll() {
     return this.ordersService.findAll();
   }
@@ -43,6 +48,8 @@ export class OrdersController {
   }
 
   @Get('user/:userId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   findAllByUser(@Param('userId') userId: string) {
     return this.ordersService.findAllByUser(userId);
   }

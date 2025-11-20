@@ -1,4 +1,3 @@
-
 ## Contexto general
 Este es un proyecto profesional de **eCommerce** llamado **Refrielectricos**, estructurado como un **monorepo** con:
 - **Frontend:** Next.js (App Router, TypeScript, TailwindCSS)
@@ -73,8 +72,12 @@ El objetivo es construir una tienda online moderna, escalable y mantenible, desa
    - (Completado) **Fase 2 (Estado):** Implementar `CartContext` para manejo global del carrito y persistencia.
    - (Completado) **Fase 3 (Páginas):** Detalle de producto (`/products/[id]`), Login/Register (`/auth/*`).
    - (Completado) **Fase 4 (Checkout):** Página de resumen de carrito y envío de orden a la API protegida.
-   - **Fase 5 (Usuario):** Perfil de usuario e historial de órdenes.
-   - **Fase 6 (Admin):** Panel de administración para productos y órdenes.
+   - (Completado al 90%)**Fase 5 (Usuario):** Perfil de usuario e historial de órdenes.
+   - (Completado) **Fase 6 (Admin):** Panel de administración para productos y órdenes.
+     - Dashboard con estadísticas.
+     - Gestión de Productos (CRUD completo con imágenes).
+     - Gestión de Pedidos (Listado y cambio de estado).
+     - Protección de rutas con RolesGuard (Backend) y AdminLayout (Frontend).
 
 4. **Infraestructura:**
    - Configurar CI/CD con GitHub Actions

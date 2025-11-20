@@ -16,4 +16,8 @@ export interface Order {
   status: 'PENDING' | 'PAID' | 'SHIPPED' | 'CANCELLED';
   createdAt: string;
   items: OrderItem[];
+  user: {
+    name: string | null;
+    email: string;
+  };
 }
