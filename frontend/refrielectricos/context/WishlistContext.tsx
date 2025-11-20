@@ -83,6 +83,12 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       await api.post(`/wishlists/${targetListId}/items`, { productId });
       await refreshWishlists();
     } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((error as any).response?.status === 409) {
+        // Ya existe, no hacemos nada o mostramos toast
+        console.log('El producto ya está en la lista');
+        return;
+      }
       console.error('Error adding to wishlist:', error);
       throw error;
     }
