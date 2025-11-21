@@ -71,6 +71,12 @@ export default function Navbar() {
               >
                 Productos
               </Link>
+              <Link 
+                href="/contact" 
+                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white/50 dark:hover:bg-gray-800/50 rounded-full transition-all duration-200"
+              >
+                Contacto
+              </Link>
             </div>
           </div>
 
