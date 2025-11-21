@@ -16,7 +16,7 @@ El objetivo es construir una tienda online moderna, escalable y mantenible, desa
 - **Base de datos:** Conectada a Neon (PostgreSQL) mediante Prisma ORM
 - **Modelos Prisma implementados:**
   - `User` (id, email, name, password, role: USER/ADMIN, orders, timestamps)
-  - `Product` (id, name, description, price, stock, orderItems, timestamps)
+  - `Product` (id, name, description, price, stock, image_url, category, brand, sku, tags, isActive, orderItems, timestamps)
   - `Order` (id, user, items, total, status: PENDING/PAID/SHIPPED/CANCELLED, timestamps)
   - `OrderItem` (id, order, product, quantity, price)
 - **Servicios configurados:**
@@ -48,11 +48,11 @@ El objetivo es construir una tienda online moderna, escalable y mantenible, desa
   - `lucide-react` (Iconografía).
 - **Estado:**
   - **Contextos:** `AuthContext` (Login/Register/Logout), `CartContext` (Carrito persistente), `WishlistContext` (Favoritos) y `ToastContext` (Notificaciones) implementados.
-  - **Componentes UI:** `Button`, `Input`, `Card`, `Navbar` (con estado de usuario y carrito).
+  - **Componentes UI:** `Button`, `Input`, `Card`, `Modal`, `Navbar` (con búsqueda y menú de usuario), `Footer` (moderno y responsivo).
   - **Páginas Implementadas:**
     - `page.tsx`: Home con listado de productos.
     - `(auth)/login` & `(auth)/register`: Flujo completo de autenticación.
-    - `(shop)/products`: Catálogo con filtros por categoría y búsqueda.
+    - `(shop)/products`: Catálogo con filtros avanzados (Categoría, Marca, Precio, Búsqueda) y debounce.
     - `(shop)/products/[id]`: Detalle de producto con galería y zoom.
     - `(shop)/cart`: Vista de carrito con gestión de cantidades.
     - `(shop)/checkout`: Formulario de envío y creación de orden.
@@ -60,6 +60,7 @@ El objetivo es construir una tienda online moderna, escalable y mantenible, desa
     - `(shop)/profile/wishlists`: Gestión de listas de deseos.
     - `admin/users`: Gestión de usuarios y roles.
     - `admin/settings`: Configuración de la tienda (UI).
+    - `admin/products`: Gestión completa de productos (CRUD con nuevos campos: Categoría, Marca, SKU, Tags).
 
 ### Próximos pasos sugeridos
 2. **Backend:**
@@ -68,21 +69,27 @@ El objetivo es construir una tienda online moderna, escalable y mantenible, desa
    - (Completado) Añadir DTOs y validación con `class-validator`
    - (Completado) Crear endpoints CRUD completos para productos y órdenes
    - (Completado) Implementar módulo de `Wishlists` (Favoritos).
+   - (Completado) Actualizar modelo `Product` con campos para filtros avanzados (`category`, `brand`, `sku`, `tags`).
    - Notas recientes: se implementó autenticación completa (JWT, bcrypt, Guards) y se protegieron las rutas sensibles. Se corrigieron problemas de tipos en `tsconfig.json`.
 
 3. **Frontend:**
    - (Completado) Configurar conexión con API backend (Axios/Fetch)
-   - (Completado) **Fase 1 (UI Base):** Refactorizar `ProductCard`, crear componentes UI (`Button`, `Input`).
+   - (Completado) **Fase 1 (UI Base):** Refactorizar `ProductCard`, crear componentes UI (`Button`, `Input`, `Modal`).
    - (Completado) **Fase 2 (Estado):** Implementar `CartContext` para manejo global del carrito y persistencia.
    - (Completado) **Fase 3 (Páginas):** Detalle de producto (`/products/[id]`), Login/Register (`/auth/*`).
    - (Completado) **Fase 4 (Checkout):** Página de resumen de carrito y envío de orden a la API protegida.
    - (Completado) **Fase 5 (Usuario):** Perfil de usuario, historial de órdenes y Wishlist (Favoritos).
    - (Completado) **Fase 6 (Admin):** Panel de administración para productos y órdenes.
      - Dashboard con estadísticas.
-     - Gestión de Productos (CRUD completo con imágenes).
+     - Gestión de Productos (CRUD completo con imágenes y nuevos campos).
      - Gestión de Pedidos (Listado y cambio de estado).
      - Gestión de Usuarios (Roles y eliminación).
      - Protección de rutas con RolesGuard (Backend) y AdminLayout (Frontend).
+   - (Completado) **Mejoras de UX:**
+     - Navbar con búsqueda integrada y menú de usuario mejorado.
+     - Footer moderno.
+     - Filtros de productos avanzados con debounce.
+     - Modal de confirmación para acciones críticas (guardar/editar productos).
    - (Completado) **Correcciones y Estabilidad:**
      - Solucionado error de migraciones Prisma (`PrismaClientKnownRequestError`).
      - Implementado manejo de errores robusto en Backend (Logs, Try-Catch).

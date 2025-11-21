@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useCart } from '@/context/CartContext';
 import Button from '@/components/ui/Button';
-import { ShoppingCart, CreditCard, Check, Heart } from 'lucide-react';
+import { ShoppingCart, CreditCard, Check, Heart, ListPlus, Tag } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
@@ -20,6 +20,9 @@ interface Product {
   image_url?: string;
   images_url?: string[]; // Soporte para múltiples imágenes si el backend lo envía
   category?: string;
+  brand?: string;
+  sku?: string;
+  tags?: string[];
   main_category?: string;
   sub_category?: string;
 }
@@ -199,6 +202,39 @@ export default function ProductDetailPage() {
               <p>{product.description || 'Sin descripción disponible.'}</p>
             </div>
 
+            {/* Detalles adicionales: Categoría, Marca, SKU, Tags */}
+            <div className="grid grid-cols-2 gap-4 mb-8 text-sm">
+              {product.category && (
+                <div className="flex flex-col">
+                  <span className="text-gray-500 dark:text-gray-400 text-xs">Categoría</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{product.category}</span>
+                </div>
+              )}
+              {product.brand && (
+                <div className="flex flex-col">
+                  <span className="text-gray-500 dark:text-gray-400 text-xs">Marca</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{product.brand}</span>
+                </div>
+              )}
+              {product.sku && (
+                <div className="flex flex-col">
+                  <span className="text-gray-500 dark:text-gray-400 text-xs">SKU</span>
+                  <span className="font-mono text-gray-900 dark:text-white">{product.sku}</span>
+                </div>
+              )}
+            </div>
+
+            {product.tags && product.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-8">
+                {product.tags.map((tag) => (
+                  <span key={tag} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                    <Tag size={12} className="mr-1" />
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
             <div className="mt-auto space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
@@ -221,15 +257,16 @@ export default function ProductDetailPage() {
                   <CreditCard size={20} />
                   Comprar ahora
                 </Button>
-
-                <button
-                  onClick={() => setIsWishlistModalOpen(true)}
-                  className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400"
-                  title="Agregar a favoritos"
-                >
-                  <Heart size={24} />
-                </button>
               </div>
+              
+              <Button
+                onClick={() => setIsWishlistModalOpen(true)}
+                variant="outline"
+                className="w-full gap-2"
+              >
+                <ListPlus size={20} />
+                Agregar a una lista
+              </Button>
 
               {/* Métodos de pago (Simulados) */}
               <div className="pt-6 border-t border-gray-100 dark:border-gray-700">
