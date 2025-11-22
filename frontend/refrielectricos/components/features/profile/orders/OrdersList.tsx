@@ -76,9 +76,10 @@ export default function OrdersList() {
   return (
     <div className="space-y-6">
       {orders.map((order) => (
-        <div 
+        <Link 
+          href={`/profile/orders/${order.id}`}
           key={order.id} 
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-blue-500 dark:hover:border-blue-500 transition-colors"
+          className="block bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:border-blue-500 dark:hover:border-blue-500 transition-all hover:shadow-md group"
         >
           <div className="p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -93,7 +94,7 @@ export default function OrdersList() {
                     minute: '2-digit'
                   })}
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
                   Pedido #{order.id.slice(-6).toUpperCase()}
                 </h3>
               </div>
@@ -111,13 +112,13 @@ export default function OrdersList() {
 
             <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
               <div className="space-y-3">
-                {order.items.map((item) => (
+                {order.items.slice(0, 3).map((item) => (
                   <div key={item.id} className="flex justify-between items-center text-sm">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-gray-900 dark:text-white">
                         {item.quantity}x
                       </span>
-                      <span className="text-gray-600 dark:text-gray-300">
+                      <span className="text-gray-600 dark:text-gray-300 truncate max-w-[200px] sm:max-w-xs">
                         {item.product.name}
                       </span>
                     </div>
@@ -126,10 +127,15 @@ export default function OrdersList() {
                     </span>
                   </div>
                 ))}
+                {order.items.length > 3 && (
+                  <p className="text-xs text-gray-400 italic pt-1">
+                    + {order.items.length - 3} productos más...
+                  </p>
+                )}
               </div>
             </div>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );

@@ -3,13 +3,38 @@
 import { useEffect, useState } from 'react';
 import { Package, ShoppingBag, Users, DollarSign } from 'lucide-react';
 import api from '@/lib/api';
+import RevenueChart from '@/components/features/admin/dashboard/RevenueChart';
+import OrderStatusChart from '@/components/features/admin/dashboard/OrderStatusChart';
+import RecentOrders from '@/components/features/admin/dashboard/RecentOrders';
+import TopProducts from '@/components/features/admin/dashboard/TopProducts';
+
+interface DashboardStats {
+  products: number;
+  orders: number;
+  users: number;
+  revenue: number;
+  revenueByMonth: { name: string; total: number }[];
+  orderStatusDistribution: { name: string; value: number }[];
+  topProducts: { id: string; name: string; _count: { orderItems: number } }[];
+  recentOrders: {
+    id: string;
+    total: number;
+    status: string;
+    createdAt: string;
+    user: { name: string | null; email: string };
+  }[];
+}
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     products: 0,
     orders: 0,
     users: 0,
     revenue: 0,
+    revenueByMonth: [],
+    orderStatusDistribution: [],
+    topProducts: [],
+    recentOrders: [],
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -24,6 +49,10 @@ export default function AdminDashboard() {
           orders: data.totalOrders,
           users: data.totalUsers,
           revenue: data.totalRevenue,
+          revenueByMonth: data.revenueByMonth,
+          orderStatusDistribution: data.orderStatusDistribution,
+          topProducts: data.topProducts,
+          recentOrders: data.recentOrders,
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -36,13 +65,18 @@ export default function AdminDashboard() {
   }, []);
 
   if (isLoading) {
-    return <div>Cargando estadísticas...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
       
+      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard 
           title="Ingresos Totales" 
@@ -74,7 +108,25 @@ export default function AdminDashboard() {
         />
       </div>
 
-      {/* Recent Activity or Charts could go here */}
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <RevenueChart data={stats.revenueByMonth} />
+        </div>
+        <div>
+          <OrderStatusChart data={stats.orderStatusDistribution} />
+        </div>
+      </div>
+
+      {/* Lists Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <RecentOrders orders={stats.recentOrders} />
+        </div>
+        <div>
+          <TopProducts products={stats.topProducts} />
+        </div>
+      </div>
     </div>
   );
 }

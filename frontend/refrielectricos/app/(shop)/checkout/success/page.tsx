@@ -17,11 +17,11 @@ export default function CheckoutSuccessPage() {
       </p>
 
       <div className="space-y-3">
+        <Link href="/profile/orders" className="block w-full">
+          <Button variant="outline" className="w-full">Ver mis pedidos</Button>
+        </Link>
         <Link href="/products" className="block w-full">
           <Button className="w-full">Seguir comprando</Button>
-        </Link>
-        <Link href="/" className="block w-full">
-          <Button variant="outline" className="w-full">Volver al inicio</Button>
         </Link>
       </div>
     </div>

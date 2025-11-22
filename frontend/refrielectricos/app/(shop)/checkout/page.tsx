@@ -23,6 +23,7 @@ export default function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [notes, setNotes] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'CARD' | 'NEQUI'>('COD');
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -60,10 +61,16 @@ export default function CheckoutPage() {
     setError('');
 
     try {
+      // Simular procesamiento de pago si no es contra entrega
+      if (paymentMethod !== 'COD') {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // 2 segundos de "procesamiento"
+      }
+
       const orderData = {
         userId: user.id,
         addressId: selectedAddressId,
         notes: notes,
+        status: paymentMethod === 'COD' ? 'PENDING' : 'PAID', // Simulación: Pagado si es electrónico
         items: items.map(item => ({
           productId: item.id,
           quantity: item.quantity
@@ -199,29 +206,73 @@ export default function CheckoutPage() {
             </div>
             
             <div className="space-y-3">
-              <div className="flex items-center p-4 border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 rounded-lg cursor-pointer">
+              <div 
+                onClick={() => setPaymentMethod('COD')}
+                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
+                  paymentMethod === 'COD' 
+                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                }`}
+              >
                 <input
                   id="payment-cod"
                   name="payment-method"
                   type="radio"
-                  defaultChecked
+                  checked={paymentMethod === 'COD'}
+                  onChange={() => setPaymentMethod('COD')}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                 />
-                <label htmlFor="payment-cod" className="ml-3 block text-sm font-medium text-gray-900 dark:text-white">
+                <label htmlFor="payment-cod" className="ml-3 block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
                   Pago contra entrega (Efectivo)
                 </label>
               </div>
-              <div className="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg opacity-60 cursor-not-allowed">
+
+              <div 
+                onClick={() => setPaymentMethod('CARD')}
+                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
+                  paymentMethod === 'CARD' 
+                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                }`}
+              >
                 <input
                   id="payment-card"
                   name="payment-method"
                   type="radio"
-                  disabled
-                  className="h-4 w-4 text-gray-300 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                  checked={paymentMethod === 'CARD'}
+                  onChange={() => setPaymentMethod('CARD')}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                 />
-                <label htmlFor="payment-card" className="ml-3 block text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Tarjeta de Crédito / Débito (Próximamente)
-                </label>
+                <div className="ml-3">
+                  <label htmlFor="payment-card" className="block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
+                    Tarjeta de Crédito / Débito
+                  </label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Procesado seguro por Stripe (Simulado)</p>
+                </div>
+              </div>
+
+              <div 
+                onClick={() => setPaymentMethod('NEQUI')}
+                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
+                  paymentMethod === 'NEQUI' 
+                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                }`}
+              >
+                <input
+                  id="payment-nequi"
+                  name="payment-method"
+                  type="radio"
+                  checked={paymentMethod === 'NEQUI'}
+                  onChange={() => setPaymentMethod('NEQUI')}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                />
+                <div className="ml-3">
+                  <label htmlFor="payment-nequi" className="block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
+                    Nequi / Daviplata
+                  </label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Transferencia rápida (Simulado)</p>
+                </div>
               </div>
             </div>
           </div>

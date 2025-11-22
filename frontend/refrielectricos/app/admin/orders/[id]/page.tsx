@@ -3,15 +3,18 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Package, User, MapPin } from 'lucide-react';
+import { ArrowLeft, Package, User, MapPin, Loader2 } from 'lucide-react';
 import api from '@/lib/api';
 import Image from 'next/image';
 import { Order } from '@/types/order';
+import { useToast } from '@/context/ToastContext';
 
 export default function AdminOrderDetailPage() {
   const params = useParams();
+  const { addToast } = useToast();
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -30,21 +33,53 @@ export default function AdminOrderDetailPage() {
     }
   }, [params.id]);
 
+  const handleStatusChange = async (newStatus: string) => {
+    if (!order) return;
+    setIsUpdating(true);
+    try {
+      const res = await api.patch(`/orders/${order.id}`, { status: newStatus });
+      setOrder(res.data);
+      addToast('Estado actualizado correctamente', 'success');
+    } catch (error) {
+      console.error('Error updating status:', error);
+      addToast('Error al actualizar estado', 'error');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   if (isLoading) return <div>Cargando pedido...</div>;
   if (!order) return <div>Pedido no encontrado</div>;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/admin/orders" className="text-gray-500 hover:text-blue-600">
-          <ArrowLeft size={24} />
-        </Link>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Pedido #{order.id.slice(-6).toUpperCase()}
-        </h1>
-        <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-800">
-          {order.status}
-        </span>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/orders" className="text-gray-500 hover:text-blue-600">
+            <ArrowLeft size={24} />
+          </Link>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Pedido #{order.id.slice(-6).toUpperCase()}
+          </h1>
+        </div>
+        
+        <div className="flex items-center gap-2">
+            {isUpdating && <Loader2 className="animate-spin text-blue-600" size={20} />}
+            <select
+                value={order.status}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                disabled={isUpdating}
+                className={`px-4 py-2 rounded-lg border text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${
+                    getStatusColor(order.status)
+                }`}
+            >
+                <option value="PENDING">Pendiente</option>
+                <option value="PAID">Pagado</option>
+                <option value="SHIPPED">Enviado</option>
+                <option value="DELIVERED">Entregado</option>
+                <option value="CANCELLED">Cancelado</option>
+            </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -144,4 +179,21 @@ export default function AdminOrderDetailPage() {
       </div>
     </div>
   );
+}
+
+function getStatusColor(status: string) {
+  switch (status) {
+    case 'PENDING':
+      return 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800';
+    case 'PAID':
+      return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
+    case 'SHIPPED':
+      return 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800';
+    case 'DELIVERED':
+      return 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
+    case 'CANCELLED':
+      return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
+    default:
+      return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700';
+  }
 }

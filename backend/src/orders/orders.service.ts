@@ -150,15 +150,79 @@ export class OrdersService {
     });
   }
 
-  update(id: string, updateOrderDto: UpdateOrderDto): Promise<Order> {
-    // Nota: Actualizar una orden es complejo si cambian los items (recalcular total, stock, etc.)
-    // Por simplicidad, aquí permitimos actualizar estado u otros campos simples.
-    // Si se actualizan items, requeriría lógica adicional.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { items, ...data } = updateOrderDto;
-    return this.prisma.order.update({
+  async update(id: string, updateOrderDto: UpdateOrderDto): Promise<Order> {
+    const { status, userId, items, addressId, notes } = updateOrderDto;
+
+    // Filtrar y mapear datos válidos para Prisma
+    const data: any = {};
+    if (notes) data.shippingNotes = notes;
+    // Nota: userId, items y addressId se ignoran en la actualización directa
+    // para evitar inconsistencias. Si se requiere actualizar items,
+    // se debería implementar una lógica específica.
+
+    // Si no hay cambio de estado, actualización simple
+    if (!status) {
+      return this.prisma.order.update({
+        where: { id },
+        data,
+      });
+    }
+
+    // Obtener orden actual con items para manejar stock
+    const currentOrder = await this.prisma.order.findUnique({
       where: { id },
-      data: data,
+      include: { items: true },
+    });
+
+    if (!currentOrder) {
+      throw new NotFoundException(`Order with ID ${id} not found`);
+    }
+
+    // Si el estado no cambia, retornar
+    if (currentOrder.status === status) {
+      return this.prisma.order.update({
+        where: { id },
+        data: { ...data, status },
+      });
+    }
+
+    return await this.prisma.$transaction(async (prisma) => {
+      // Caso 1: Cancelar orden (Restaurar stock)
+      if (status === 'CANCELLED' && currentOrder.status !== 'CANCELLED') {
+        for (const item of currentOrder.items) {
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
+          });
+        }
+      }
+
+      // Caso 2: Reactivar orden cancelada (Descontar stock)
+      if (status !== 'CANCELLED' && currentOrder.status === 'CANCELLED') {
+        for (const item of currentOrder.items) {
+          // Verificar stock antes de descontar
+          const product = await prisma.product.findUnique({
+            where: { id: item.productId },
+          });
+
+          if (!product || product.stock < item.quantity) {
+            throw new Error(
+              `Insufficient stock for product ${product?.name || item.productId} to reactivate order`,
+            );
+          }
+
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } },
+          });
+        }
+      }
+
+      // Actualizar la orden
+      return prisma.order.update({
+        where: { id },
+        data: { ...data, status },
+      });
     });
   }
 

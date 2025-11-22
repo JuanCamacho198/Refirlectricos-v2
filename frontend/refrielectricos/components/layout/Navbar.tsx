@@ -88,7 +88,8 @@ export default function Navbar() {
               </div>
               <input
                 type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-full leading-5 bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white placeholder-transparent focus:outline-none focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all duration-200"
+                placeholder="Buscar productos..."
+                className="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-full leading-5 bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all duration-200"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
