@@ -25,6 +25,7 @@ async function main() {
     create: {
       id: 'prod-1',
       name: 'Refrigerador Modelo A',
+      slug: 'refrigerador-modelo-a',
       description: 'Refrigerador eficiente',
       price: 499.99,
       stock: 10,
@@ -37,6 +38,7 @@ async function main() {
     create: {
       id: 'prod-2',
       name: 'Refrigerador Modelo B',
+      slug: 'refrigerador-modelo-b',
       description: 'Refrigerador compacto',
       price: 349.99,
       stock: 5,

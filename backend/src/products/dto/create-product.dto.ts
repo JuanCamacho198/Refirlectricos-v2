@@ -24,6 +24,11 @@ export class CreateProductDto {
   @IsOptional()
   image_url?: string;
 
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  images_url?: string[];
+
   @IsString()
   @IsOptional()
   category?: string;

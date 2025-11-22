@@ -53,6 +53,7 @@ model Product {
   brand         String?        // Nuevo: Marca del producto
   sku           String?        @unique // Nuevo: Código de inventario único
   tags          String[]       // Nuevo: Etiquetas para búsqueda flexible
+  images_url    String[]       // Nuevo: Galería de imágenes
   isActive      Boolean        @default(true) // Nuevo: Control de visibilidad
   orderItems    OrderItem[]
   wishlistItems WishlistItem[]

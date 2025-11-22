@@ -11,6 +11,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
 import ImageUpload from '@/components/ui/ImageUpload';
+import MultiImageUpload from '@/components/ui/MultiImageUpload';
 import { productSchema, ProductFormData } from '@/schemas/product';
 import { useToast } from '@/context/ToastContext';
 
@@ -41,6 +42,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       price: 0,
       stock: 0,
       image_url: '',
+      images_url: [],
     },
   });
 
@@ -61,6 +63,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       price: Number(pendingData.price),
       stock: Number(pendingData.stock),
       image_url: pendingData.image_url || undefined,
+      images_url: pendingData.images_url || undefined,
       description: pendingData.description || undefined,
     };
 
@@ -189,7 +192,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
           render={({ field }) => (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                Imagen del Producto
+                Imagen Principal
               </label>
               <ImageUpload
                 value={field.value || ''}
@@ -198,6 +201,26 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
               />
               {errors.image_url && (
                 <p className="text-sm text-red-500">{errors.image_url.message}</p>
+              )}
+            </div>
+          )}
+        />
+
+        <Controller
+          name="images_url"
+          control={control}
+          render={({ field }) => (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                Galería de Imágenes
+              </label>
+              <MultiImageUpload
+                value={field.value || []}
+                onChange={field.onChange}
+                disabled={isLoading}
+              />
+              {errors.images_url && (
+                <p className="text-sm text-red-500">{errors.images_url.message}</p>
               )}
             </div>
           )}

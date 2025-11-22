@@ -10,6 +10,7 @@ export const productSchema = z.object({
     .startsWith('https://', 'La URL debe ser segura (https://)')
     .optional()
     .or(z.literal('')),
+  images_url: z.array(z.string().url()).optional(),
   category: z.string().optional(),
   brand: z.string().optional(),
   sku: z.string().optional(),
