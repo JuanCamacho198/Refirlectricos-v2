@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "build": "nest build"
   },
   "devDependencies": {
     "husky": "^9.0.0",
