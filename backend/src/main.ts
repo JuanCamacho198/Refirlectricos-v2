@@ -38,7 +38,7 @@ async function bootstrap() {
   });
   // Security Headers
   app.use(helmet());
-
+  app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -49,7 +49,12 @@ async function bootstrap() {
       },
     }),
   );
-  app.enableCors();
+  // Habilitar CORS para permitir peticiones desde el Frontend
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || '*', // Asegúrate de tener FRONTEND_URL en Render o usa '*' temporalmente
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Refrielectricos API')
