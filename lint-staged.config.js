@@ -17,7 +17,8 @@ module.exports = {
     const cwd = process.cwd();
     const frontendDir = path.join(cwd, 'frontend', 'refrielectricos');
     const relativeFiles = filenames.map((f) => toPosixPath(path.relative(frontendDir, f)));
-    const args = relativeFiles.map((f) => `--file "${f}"`).join(' ');
-    return `pnpm -C frontend/refrielectricos run lint ${args} --fix`;
+    const filesStr = relativeFiles.join(' ');
+    // Usamos eslint directamente porque next lint tiene problemas con --file en algunas versiones
+    return `pnpm -C frontend/refrielectricos exec eslint ${filesStr} --fix`;
   },
 };

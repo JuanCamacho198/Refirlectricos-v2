@@ -4,6 +4,7 @@ export interface OrderItem {
   quantity: number;
   price: number;
   product: {
+    id: string;
     name: string;
     image_url?: string;
   };
@@ -13,7 +14,7 @@ export interface Order {
   id: string;
   userId: string;
   total: number;
-  status: 'PENDING' | 'PAID' | 'SHIPPED' | 'CANCELLED';
+  status: 'PENDING' | 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
   createdAt: string;
   items: OrderItem[];
   user: {
