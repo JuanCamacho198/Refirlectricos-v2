@@ -4,6 +4,7 @@ import api from '@/lib/api';
 import { User } from '@/types/user';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/context/ToastContext';
+import { useCartStore } from '@/store/cartStore';
 
 interface LoginCredentials {
   email: string;
@@ -21,6 +22,7 @@ export const useAuth = () => {
   const { user, token, setAuth, logout: storeLogout, updateUser } = useAuthStore();
   const router = useRouter();
   const { addToast } = useToast();
+  const clearCart = useCartStore((state) => state.clearCart);
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
@@ -55,7 +57,6 @@ export const useAuth = () => {
     onSuccess: (data) => {
       setAuth(data.user, data.token, data.rememberMe);
       addToast('Bienvenido', 'success');
-      // router.push('/'); // Moved to component
     },
     onError: (error: unknown) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -83,6 +84,7 @@ export const useAuth = () => {
 
   const logout = () => {
     storeLogout();
+    clearCart();
     router.push('/');
     addToast('Sesión cerrada', 'info');
   };
