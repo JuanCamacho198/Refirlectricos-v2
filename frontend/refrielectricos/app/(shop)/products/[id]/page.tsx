@@ -44,6 +44,39 @@ export async function generateMetadata(
   };
 }
 
-export default function ProductPage() {
-  return <ProductDetailClient />;
+export default async function ProductPage({ params }: Props) {
+  const id = (await params).id;
+  const product = await getProduct(id);
+
+  const jsonLd = product ? {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    image: product.image_url,
+    description: product.description,
+    sku: product.sku,
+    brand: {
+      '@type': 'Brand',
+      name: product.brand || 'Refrielectricos',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: `https://refrielectricos.com/products/${product.slug || product.id}`,
+      priceCurrency: 'COP',
+      price: product.price,
+      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    },
+  } : null;
+
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <ProductDetailClient />
+    </>
+  );
 }

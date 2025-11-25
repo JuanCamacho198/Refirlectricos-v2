@@ -1,100 +1,126 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import ProductCard from '@/components/features/products/ProductCard';
 import ProductFilters from '@/components/features/products/ProductFilters';
 import Button from '@/components/ui/Button';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '@/types/product';
+
+interface PaginationMeta {
+  total: number;
+  page: number;
+  lastPage: number;
+}
+
+interface ProductsResponse {
+  data: Product[];
+  meta: PaginationMeta;
+}
 
 function ProductsContent() {
   const searchParams = useSearchParams();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
   
-  // Filtros
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
-  const [priceRange, setPriceRange] = useState<{ min: string; max: string }>({ min: '', max: '' });
+  // Estado local para input de búsqueda (para no actualizar URL en cada tecla)
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchParams.get('search') || '');
   const [showFilters, setShowFilters] = useState(false);
 
-  // Inicializar búsqueda desde URL
-  useEffect(() => {
-    const search = searchParams.get('search');
-    if (search) {
-      setSearchTerm(search);
+  // Filtros desde URL
+  const searchTerm = searchParams.get('search') || '';
+  const selectedCategory = searchParams.get('category');
+  const selectedBrand = searchParams.get('brand');
+  const minPrice = searchParams.get('minPrice');
+  const maxPrice = searchParams.get('maxPrice');
+  const page = parseInt(searchParams.get('page') || '1');
+
+  // Query para Metadata (Categorías y Marcas)
+  const { data: metadata } = useQuery({
+    queryKey: ['products-metadata'],
+    queryFn: async () => {
+      const { data } = await api.get('/products/metadata');
+      return data;
+    },
+    staleTime: 1000 * 60 * 10, // 10 minutos
+  });
+
+  // Query para Productos
+  const { data: productsData, isLoading } = useQuery<ProductsResponse>({
+    queryKey: ['products', page, searchTerm, selectedCategory, selectedBrand, minPrice, maxPrice],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (selectedCategory) params.append('category', selectedCategory);
+      if (selectedBrand) params.append('brand', selectedBrand);
+      if (minPrice) params.append('minPrice', minPrice);
+      if (maxPrice) params.append('maxPrice', maxPrice);
+      params.append('page', page.toString());
+      params.append('limit', '12');
+
+      const { data } = await api.get(`/products?${params.toString()}`);
+      return data;
+    },
+  });
+
+  const products = productsData?.data || [];
+  const meta = productsData?.meta || { total: 0, page: 1, lastPage: 1 };
+  const categories = metadata?.categories || [];
+  const brands = metadata?.brands || [];
+
+  const updateUrl = (key: string, value: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
     }
-  }, [searchParams]);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await api.get('/products');
-        setProducts(response.data);
-        setFilteredProducts(response.data);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
-  // Lógica de filtrado
-  useEffect(() => {
-    let result = products;
-
-    // Filtro por búsqueda
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(p => 
-        p.name.toLowerCase().includes(term) ||
-        p.description?.toLowerCase().includes(term) ||
-        p.brand?.toLowerCase().includes(term) ||
-        p.tags?.some(tag => tag.toLowerCase().includes(term))
-      );
+    if (key !== 'page') {
+      params.set('page', '1');
     }
+    router.push(`/products?${params.toString()}`);
+  };
 
-    // Filtro por categoría
-    if (selectedCategory) {
-      result = result.filter(p => p.category === selectedCategory);
-    }
+  const handleSearch = (value: string) => {
+    setLocalSearchTerm(value);
+    // Debounce manual o esperar enter
+    const timeoutId = setTimeout(() => {
+      updateUrl('search', value || null);
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  };
 
-    // Filtro por marca
-    if (selectedBrand) {
-      result = result.filter(p => p.brand === selectedBrand);
-    }
+  const handleCategoryChange = (category: string | null) => {
+    updateUrl('category', category);
+  };
 
-    // Filtro por precio
-    if (priceRange.min) {
-      result = result.filter(p => p.price >= Number(priceRange.min));
-    }
-    if (priceRange.max) {
-      result = result.filter(p => p.price <= Number(priceRange.max));
-    }
-
-    setFilteredProducts(result);
-  }, [searchTerm, selectedCategory, selectedBrand, priceRange, products]);
-
-  // Obtener categorías y marcas únicas
-  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[];
-  const brands = Array.from(new Set(products.map(p => p.brand).filter(Boolean))) as string[];
-
-  const clearFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory(null);
-    setSelectedBrand(null);
-    setPriceRange({ min: '', max: '' });
+  const handleBrandChange = (brand: string | null) => {
+    updateUrl('brand', brand);
   };
 
   const handlePriceRangeChange = (type: 'min' | 'max', value: string) => {
-    setPriceRange(prev => ({ ...prev, [type]: value }));
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set(type === 'min' ? 'minPrice' : 'maxPrice', value);
+    } else {
+      params.delete(type === 'min' ? 'minPrice' : 'maxPrice');
+    }
+    params.set('page', '1');
+    router.push(`/products?${params.toString()}`);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', newPage.toString());
+    router.push(`/products?${params.toString()}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const clearFilters = () => {
+    setLocalSearchTerm('');
+    router.push('/products');
   };
 
   return (
@@ -114,8 +140,8 @@ function ProductsContent() {
               type="text"
               placeholder="Buscar productos..."
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={localSearchTerm}
+              onChange={(e) => handleSearch(e.target.value)}
             />
           </div>
           <Button 
@@ -136,9 +162,9 @@ function ProductsContent() {
             brands={brands}
             selectedCategory={selectedCategory}
             selectedBrand={selectedBrand}
-            priceRange={priceRange}
-            onCategoryChange={setSelectedCategory}
-            onBrandChange={setSelectedBrand}
+            priceRange={{ min: minPrice || '', max: maxPrice || '' }}
+            onCategoryChange={handleCategoryChange}
+            onBrandChange={handleBrandChange}
             onPriceRangeChange={handlePriceRangeChange}
             onClearFilters={clearFilters}
           />
@@ -146,18 +172,47 @@ function ProductsContent() {
 
         {/* Grid de Productos */}
         <div className="flex-1">
-          {loading ? (
+          {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-96 bg-gray-200 dark:bg-gray-800 rounded-xl animate-pulse" />
+                <div key={i} className="h-96 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
               ))}
             </div>
-          ) : filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+          ) : products.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+
+              {/* Paginación */}
+              {meta.lastPage > 1 && (
+                <div className="flex justify-center items-center gap-2">
+                  <Button
+                    variant="outline"
+                    disabled={meta.page === 1}
+                    onClick={() => handlePageChange(meta.page - 1)}
+                    className="p-2"
+                  >
+                    <ChevronLeft size={20} />
+                  </Button>
+                  
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Página {meta.page} de {meta.lastPage}
+                  </span>
+
+                  <Button
+                    variant="outline"
+                    disabled={meta.page === meta.lastPage}
+                    onClick={() => handlePageChange(meta.page + 1)}
+                    className="p-2"
+                  >
+                    <ChevronRight size={20} />
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 border-dashed transition-colors">
               <Search className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />

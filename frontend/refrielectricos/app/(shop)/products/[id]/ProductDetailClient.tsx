@@ -8,6 +8,7 @@ import ProductGallery from '@/components/features/products/ProductGallery';
 import ProductInfo from '@/components/features/products/ProductInfo';
 import ProductDescription from '@/components/features/products/ProductDescription';
 import { ProductReviews } from '@/components/features/reviews/ProductReviews';
+import RelatedProducts from '@/components/features/products/RelatedProducts';
 import { useProduct } from '@/hooks/useProducts';
 
 export default function ProductDetailClient() {
@@ -65,6 +66,11 @@ export default function ProductDetailClient() {
 
       {/* Descripción y Detalles */}
       <ProductDescription description={product.description || ''} tags={product.tags} />
+
+      {/* Productos Relacionados */}
+      {product.category && (
+        <RelatedProducts category={product.category} currentProductId={product.id} />
+      )}
 
       {/* Reseñas */}
       <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 transition-colors">

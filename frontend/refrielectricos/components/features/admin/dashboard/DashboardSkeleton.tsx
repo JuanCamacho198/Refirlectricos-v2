@@ -1,5 +1,3 @@
-import { Skeleton } from "@/components/ui/Skeleton";
-
 export default function DashboardSkeleton() {
   return (
     <div className="space-y-8 animate-pulse">

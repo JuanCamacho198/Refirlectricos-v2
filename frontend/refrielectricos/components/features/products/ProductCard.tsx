@@ -38,10 +38,10 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Link href={productLink} className="group block h-full">
+    <div className="group block h-full relative">
       <Card className="h-full flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-md relative">
         {/* Imagen */}
-        <div className="relative w-full pt-[70%] bg-gray-100 dark:bg-gray-700 overflow-hidden">
+        <Link href={productLink} className="relative w-full pt-[70%] bg-gray-100 dark:bg-gray-700 overflow-hidden block">
           <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-800">
             {product.image_url ? (
               <Image
@@ -55,24 +55,26 @@ export default function ProductCard({ product }: ProductCardProps) {
               <span>Sin imagen</span>
             )}
           </div>
+        </Link>
           
-          {/* Botón Favorito */}
-          <button
-            onClick={handleToggleFavorite}
-            className="absolute top-3 right-3 p-2 rounded-full bg-white/90 dark:bg-gray-900/90 shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors z-10 cursor-pointer"
-          >
-            <Heart
-              size={20}
-              className={isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400 dark:text-gray-400'}
-            />
-          </button>
-        </div>
+        {/* Botón Favorito */}
+        <button
+          onClick={handleToggleFavorite}
+          className="absolute top-3 right-3 p-2 rounded-full bg-white/90 dark:bg-gray-900/90 shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors z-10 cursor-pointer"
+        >
+          <Heart
+            size={20}
+            className={isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400 dark:text-gray-400'}
+          />
+        </button>
 
         {/* Info */}
         <div className="p-4 flex flex-col grow text-center">
-          <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 line-clamp-2 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-            {product.name}
-          </h3>
+          <Link href={productLink}>
+            <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 line-clamp-2 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              {product.name}
+            </h3>
+          </Link>
           
           {(product.category || product.brand) && (
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
@@ -99,6 +101,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         </div>
       </Card>
-    </Link>
+    </div>
   );
 }
