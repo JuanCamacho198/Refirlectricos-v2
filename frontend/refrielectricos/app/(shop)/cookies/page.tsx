@@ -62,7 +62,7 @@ export default function CookiesPage() {
           </section>
 
           <div className="mt-12 p-6 bg-orange-50 dark:bg-orange-900/20 rounded-xl border border-orange-100 dark:border-orange-800 flex items-start gap-4">
-            <ShieldCheck className="text-orange-600 dark:text-orange-400 flex-shrink-0 mt-1" />
+            <ShieldCheck className="text-orange-600 dark:text-orange-400 shrink-0 mt-1" />
             <div>
               <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Su Privacidad</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
