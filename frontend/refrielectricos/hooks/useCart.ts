@@ -5,6 +5,16 @@ import api from '@/lib/api';
 import { useEffect } from 'react';
 import { Product } from '@/types/product';
 
+interface CartApiItem {
+  productId: string;
+  quantity: number;
+  product: Product;
+}
+
+interface CartApiData {
+  items: CartApiItem[];
+}
+
 export const useCart = () => {
   const { isAuthenticated } = useAuth();
   
@@ -47,7 +57,46 @@ export const useCart = () => {
     mutationFn: async ({ product, quantity }: { product: Product, quantity: number }) => {
       return api.post('/cart/items', { productId: product.id, quantity });
     },
-    onSuccess: () => {
+    onMutate: async ({ product, quantity }) => {
+      await queryClient.cancelQueries({ queryKey: ['cart'] });
+      const previousCart = queryClient.getQueryData<CartApiData>(['cart']);
+
+      // Optimistic update
+      localAddItem(product, quantity);
+      
+      queryClient.setQueryData<CartApiData>(['cart'], (old) => {
+        if (!old) return old;
+        // Check if item exists
+        const exists = old.items.find((item) => item.productId === product.id);
+        if (exists) {
+          return {
+            ...old,
+            items: old.items.map((item) => 
+              item.productId === product.id ? { ...item, quantity: item.quantity + quantity } : item
+            )
+          };
+        }
+        return {
+          ...old,
+          items: [...old.items, { productId: product.id, quantity, product }]
+        };
+      });
+
+      return { previousCart };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousCart) {
+        queryClient.setQueryData(['cart'], context.previousCart);
+        // Re-sync zustand from previous cart
+        const mappedItems = context.previousCart.items.map((item) => ({
+          id: item.productId,
+          quantity: item.quantity,
+          product: item.product,
+        }));
+        setItems(mappedItems);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
   });
@@ -56,7 +105,38 @@ export const useCart = () => {
     mutationFn: async ({ productId, quantity }: { productId: string, quantity: number }) => {
       return api.patch(`/cart/items/${productId}`, { quantity });
     },
-    onSuccess: () => {
+    onMutate: async ({ productId, quantity }) => {
+      await queryClient.cancelQueries({ queryKey: ['cart'] });
+      const previousCart = queryClient.getQueryData<CartApiData>(['cart']);
+
+      // Optimistic update
+      localUpdateQuantity(productId, quantity);
+
+      queryClient.setQueryData<CartApiData>(['cart'], (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          items: old.items.map((item) => 
+            item.productId === productId ? { ...item, quantity } : item
+          )
+        };
+      });
+
+      return { previousCart };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousCart) {
+        queryClient.setQueryData(['cart'], context.previousCart);
+        // Re-sync zustand
+        const mappedItems = context.previousCart.items.map((item) => ({
+          id: item.productId,
+          quantity: item.quantity,
+          product: item.product,
+        }));
+        setItems(mappedItems);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
   });
@@ -65,7 +145,36 @@ export const useCart = () => {
     mutationFn: async (productId: string) => {
       return api.delete(`/cart/items/${productId}`);
     },
-    onSuccess: () => {
+    onMutate: async (productId) => {
+      await queryClient.cancelQueries({ queryKey: ['cart'] });
+      const previousCart = queryClient.getQueryData<CartApiData>(['cart']);
+
+      // Optimistic update
+      localRemoveItem(productId);
+
+      queryClient.setQueryData<CartApiData>(['cart'], (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          items: old.items.filter((item) => item.productId !== productId)
+        };
+      });
+
+      return { previousCart };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousCart) {
+        queryClient.setQueryData(['cart'], context.previousCart);
+        // Re-sync zustand
+        const mappedItems = context.previousCart.items.map((item) => ({
+          id: item.productId,
+          quantity: item.quantity,
+          product: item.product,
+        }));
+        setItems(mappedItems);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
   });
