@@ -21,6 +21,7 @@ export default function LoginForm() {
     email: '',
     password: '',
   });
+  const [rememberMe, setRememberMe] = useState(false);
   
   const registered = searchParams.get('registered');
 
@@ -34,7 +35,7 @@ export default function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(formData);
+      await login({ ...formData, rememberMe });
       
       if (localItems.length > 0) {
         const itemsToMerge = localItems.map(item => ({
@@ -83,6 +84,22 @@ export default function LoginForm() {
           placeholder="••••••••"
           autoComplete="current-password"
         />
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <input
+            id="remember-me"
+            name="remember-me"
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+          />
+          <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300 cursor-pointer">
+            Recordar contraseña
+          </label>
+        </div>
       </div>
 
       <Button

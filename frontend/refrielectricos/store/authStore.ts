@@ -1,26 +1,59 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 import { User } from '@/types/user';
 
 interface AuthState {
   user: User | null;
   token: string | null;
-  setAuth: (user: User, token: string) => void;
+  rememberMe: boolean;
+  setAuth: (user: User, token: string, rememberMe: boolean) => void;
   logout: () => void;
   updateUser: (user: User) => void;
 }
+
+const customStorage: StateStorage = {
+  getItem: (name: string): string | null => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem(name) || sessionStorage.getItem(name);
+  },
+  setItem: (name: string, value: string): void => {
+    if (typeof window === 'undefined') return;
+    try {
+      const parsed = JSON.parse(value);
+      const rememberMe = parsed.state?.rememberMe;
+      
+      if (rememberMe) {
+        localStorage.setItem(name, value);
+        sessionStorage.removeItem(name);
+      } else {
+        sessionStorage.setItem(name, value);
+        localStorage.removeItem(name);
+      }
+    } catch (e) {
+      console.error('Error saving auth state:', e);
+      localStorage.setItem(name, value); // Fallback
+    }
+  },
+  removeItem: (name: string): void => {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(name);
+    sessionStorage.removeItem(name);
+  },
+};
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
       token: null,
-      setAuth: (user, token) => set({ user, token }),
-      logout: () => set({ user: null, token: null }),
+      rememberMe: true,
+      setAuth: (user, token, rememberMe) => set({ user, token, rememberMe }),
+      logout: () => set({ user: null, token: null, rememberMe: true }),
       updateUser: (user) => set({ user }),
     }),
     {
-      name: 'auth-storage', // nombre en localStorage
+      name: 'auth-storage',
+      storage: createJSONStorage(() => customStorage),
     }
   )
 );

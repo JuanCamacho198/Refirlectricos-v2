@@ -148,7 +148,6 @@ export class ProductsService {
       this.prisma.product.findMany({
         select: { category: true },
         distinct: ['category'],
-        where: { category: { not: null } },
       }),
       this.prisma.product.findMany({
         select: { brand: true },

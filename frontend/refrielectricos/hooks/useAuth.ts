@@ -8,6 +8,7 @@ import { useToast } from '@/context/ToastContext';
 interface LoginCredentials {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 interface RegisterData {
@@ -23,7 +24,10 @@ export const useAuth = () => {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
-      const response = await api.post('/auth/login', credentials);
+      const response = await api.post('/auth/login', {
+        email: credentials.email,
+        password: credentials.password,
+      });
       const token = response.data.access_token;
 
       // Decode token manually to get user info
@@ -46,10 +50,10 @@ export const useAuth = () => {
         role: userResponse.data.role
       };
 
-      return { user, token };
+      return { user, token, rememberMe: credentials.rememberMe ?? false };
     },
     onSuccess: (data) => {
-      setAuth(data.user, data.token);
+      setAuth(data.user, data.token, data.rememberMe);
       addToast('Bienvenido', 'success');
       // router.push('/'); // Moved to component
     },
