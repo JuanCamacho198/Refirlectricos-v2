@@ -19,7 +19,7 @@ interface RegisterData {
 }
 
 export const useAuth = () => {
-  const { user, token, setAuth, logout: storeLogout, updateUser } = useAuthStore();
+  const { user, token, setAuth, logout: storeLogout, updateUser, _hasHydrated } = useAuthStore();
   const router = useRouter();
   const { addToast } = useToast();
   const clearCart = useCartStore((state) => state.clearCart);
@@ -97,6 +97,7 @@ export const useAuth = () => {
     user,
     token,
     isAuthenticated: !!token,
+    isLoading: !_hasHydrated,
     isLoggingIn: loginMutation.isPending,
     isRegistering: registerMutation.isPending,
     loginError: loginMutation.error,

@@ -12,7 +12,7 @@ import AddressesList from '@/components/features/profile/addresses/AddressesList
 import { api } from '@/lib/api';
 
 export default function ProfilePage() {
-  const { user, logout, updateUser, isAuthenticated } = useAuth();
+  const { user, logout, updateUser, isAuthenticated, isLoading } = useAuth();
   const { data: orders, isLoading: loadingOrders } = useOrders({ enabled: isAuthenticated });
   const router = useRouter();
   const { addToast } = useToast();
@@ -29,7 +29,8 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Solo redirigir cuando ya terminó de cargar y no está autenticado
+    if (!isLoading && !isAuthenticated) {
       router.push('/login');
     } else if (user) {
       setProfile({
@@ -38,7 +39,7 @@ export default function ProfilePage() {
         phone: '', 
       });
     }
-  }, [isAuthenticated, user, router]);
+  }, [isLoading, isAuthenticated, user, router]);
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -63,7 +64,8 @@ export default function ProfilePage() {
     }
   };
 
-  if (!user) {
+  // Mostrar loading mientras se hidrata el estado
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
