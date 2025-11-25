@@ -27,8 +27,11 @@ export default function OrderStatusChart({ data }: OrderStatusChartProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
+    // Pequeño delay para asegurar que el contenedor tenga dimensiones
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const chartData = data.map(item => ({
@@ -37,12 +40,26 @@ export default function OrderStatusChart({ data }: OrderStatusChartProps) {
     color: COLORS[item.name as keyof typeof COLORS] || '#9CA3AF'
   }));
 
+  // Verificar si hay datos para mostrar
+  const hasData = chartData.length > 0 && chartData.some(item => item.value > 0);
+
   if (!mounted) {
     return (
       <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Estado de Pedidos</h3>
         <div className="h-[300px] w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded-lg">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasData) {
+    return (
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Estado de Pedidos</h3>
+        <div className="h-[300px] w-full flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+          <p className="text-gray-500 dark:text-gray-400 text-center">No hay datos de pedidos disponibles</p>
         </div>
       </div>
     );

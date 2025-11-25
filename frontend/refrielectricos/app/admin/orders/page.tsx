@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import Link from 'next/link';
 import { Order } from '@/types/order';
 import { useToast } from '@/context/ToastContext';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -47,7 +48,38 @@ export default function AdminOrdersPage() {
     order.user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (isLoading) return <div>Cargando pedidos...</div>;
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-32" />
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <Skeleton className="h-6 w-full" />
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-gray-50 dark:bg-gray-900/50 px-6 py-3 flex gap-6">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-16 ml-auto" />
+          </div>
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            {[...Array(10)].map((_, i) => (
+              <div key={i} className="px-6 py-4 flex items-center gap-6">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-6 w-24 rounded-full" />
+                <Skeleton className="h-6 w-6 rounded ml-auto" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

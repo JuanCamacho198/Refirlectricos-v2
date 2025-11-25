@@ -26,6 +26,12 @@ export default function RecentOrders({ orders }: RecentOrdersProps) {
         </Link>
       </div>
       
+      {orders.length === 0 ? (
+        <div className="h-[200px] flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+          <Package size={40} className="text-gray-400 dark:text-gray-600 mb-2" />
+          <p className="text-gray-500 dark:text-gray-400 text-center">No hay pedidos recientes</p>
+        </div>
+      ) : (
       <div className="space-y-4">
         {orders.map((order) => (
           <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors">
@@ -53,6 +59,7 @@ export default function RecentOrders({ orders }: RecentOrdersProps) {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }
