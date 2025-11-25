@@ -13,13 +13,20 @@ export interface CreateOrderDto {
   }[];
 }
 
-export const useOrders = () => {
+interface UseOrdersOptions {
+  enabled?: boolean;
+}
+
+export const useOrders = (options: UseOrdersOptions = {}) => {
+  const { enabled = true } = options;
+  
   return useQuery({
-    queryKey: ['orders'],
+    queryKey: ['orders', 'mine'],
     queryFn: async () => {
-      const { data } = await api.get<Order[]>('/orders');
+      const { data } = await api.get<Order[]>('/orders/mine');
       return data;
     },
+    enabled,
   });
 };
 

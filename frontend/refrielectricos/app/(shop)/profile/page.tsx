@@ -13,7 +13,7 @@ import { api } from '@/lib/api';
 
 export default function ProfilePage() {
   const { user, logout, updateUser, isAuthenticated } = useAuth();
-  const { data: orders, isLoading: loadingOrders } = useOrders();
+  const { data: orders, isLoading: loadingOrders } = useOrders({ enabled: isAuthenticated });
   const router = useRouter();
   const { addToast } = useToast();
 
