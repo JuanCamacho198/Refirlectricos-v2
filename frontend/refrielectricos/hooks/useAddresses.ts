@@ -3,7 +3,12 @@ import api from '@/lib/api';
 import { Address, CreateAddressDto, UpdateAddressDto } from '@/types/address';
 import { useToast } from '@/context/ToastContext';
 
-export function useAddresses() {
+interface UseAddressesOptions {
+  enabled?: boolean;
+}
+
+export function useAddresses(options: UseAddressesOptions = {}) {
+  const { enabled = true } = options;
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
@@ -13,6 +18,7 @@ export function useAddresses() {
       const { data } = await api.get<Address[]>('/addresses');
       return data;
     },
+    enabled,
   });
 
   const createAddressMutation = useMutation({

@@ -282,7 +282,7 @@ export default function ProfilePage() {
         title="Mis Direcciones"
         className="max-w-4xl"
       >
-        <AddressesList />
+        <AddressesList enabled={isAddressesOpen} />
       </Modal>
 
     </div>

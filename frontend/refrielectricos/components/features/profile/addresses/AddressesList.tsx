@@ -6,9 +6,13 @@ import AddressForm from '@/components/features/profile/addresses/AddressForm';
 import { useAddresses } from '@/hooks/useAddresses';
 import { CreateAddressDto } from '@/types/address';
 
-export default function AddressesPage() {
+interface AddressesListProps {
+  enabled?: boolean;
+}
+
+export default function AddressesList({ enabled = true }: AddressesListProps) {
   const [isAdding, setIsAdding] = useState(false);
-  const { addresses, loading, createAddress, deleteAddress } = useAddresses();
+  const { addresses, loading, createAddress, deleteAddress } = useAddresses({ enabled });
 
   const handleAddAddress = async (data: CreateAddressDto) => {
     const success = await createAddress(data);
