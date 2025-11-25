@@ -2,44 +2,14 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import EditProfileForm from '@/components/features/profile/EditProfileForm';
-import { Loader2 } from 'lucide-react';
 
 export default function EditProfilePage() {
-  const { user, isAuthenticated } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isAuthenticated, router]);
+    // Redirigir a la página principal de perfil
+    router.replace('/profile');
+  }, [router]);
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-        <div className="px-6 py-8 sm:p-10">
-          <div className="mb-8 text-center sm:text-left">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Editar Perfil
-            </h1>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              Actualiza tu información personal
-            </p>
-          </div>
-          
-          <EditProfileForm />
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 }
