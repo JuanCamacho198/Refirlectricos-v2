@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrders } from '@/hooks/useOrders';
-import { Loader2, MapPin, CreditCard, Shield, LogOut, Edit2, Save, X } from 'lucide-react';
+import { Loader2, MapPin, CreditCard, Shield, LogOut, Edit2, Save } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/context/ToastContext';
 
@@ -104,29 +104,20 @@ export default function ProfilePage() {
                 {!editMode ? (
                   <button 
                     onClick={() => setEditMode(true)} 
-                    className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                    className="flex items-center gap-2 text-sm font-medium text-white bg-blue-900 hover:bg-blue-800 px-4 py-2 rounded-lg transition-colors"
                   >
                     <Edit2 size={16} />
                     Editar Información
                   </button>
                 ) : (
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => setEditMode(false)}
-                      className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                      disabled={saving}
-                    >
-                      <X size={20} />
-                    </button>
-                    <button 
-                      onClick={handleSaveProfile} 
-                      className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 disabled:opacity-50"
-                      disabled={saving}
-                    >
-                      {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                      Guardar
-                    </button>
-                  </div>
+                  <button 
+                    onClick={handleSaveProfile} 
+                    className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 disabled:opacity-50"
+                    disabled={saving}
+                  >
+                    {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                    Guardar
+                  </button>
                 )}
               </div>
 

@@ -51,7 +51,7 @@ export default function OrderStatusChart({ data }: OrderStatusChartProps) {
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Estado de Pedidos</h3>
-      <div className="h-[300px] w-full">
+      <div className="h-[300px] w-full min-w-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie

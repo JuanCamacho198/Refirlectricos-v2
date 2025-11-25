@@ -29,7 +29,7 @@ export default function RevenueChart({ data }: RevenueChartProps) {
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Resumen de Ingresos</h3>
-      <div className="h-[300px] w-full">
+      <div className="h-[300px] w-full min-w-0">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
