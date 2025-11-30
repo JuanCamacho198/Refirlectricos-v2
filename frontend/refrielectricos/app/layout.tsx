@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
+import { Roboto } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/context/ToastContext";
 import { ThemeProvider } from "@/components/theme-provider";
 import QueryProvider from "@/components/providers/QueryProvider";
+
+const roboto = Roboto({
+  weight: ['300', '400', '500', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-roboto',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -26,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className="antialiased bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <body className={`${roboto.variable} font-sans antialiased bg-gray-50 dark:bg-gray-900 transition-colors duration-300`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

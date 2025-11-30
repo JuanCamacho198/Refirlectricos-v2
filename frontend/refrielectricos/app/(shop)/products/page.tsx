@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import ProductCard from '@/components/features/products/ProductCard';
+import ProductCardSkeleton from '@/components/features/products/ProductCardSkeleton';
 import ProductFilters from '@/components/features/products/ProductFilters';
 import Button from '@/components/ui/Button';
 import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -175,7 +176,7 @@ function ProductsContent() {
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-96 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
+                <ProductCardSkeleton key={i} />
               ))}
             </div>
           ) : products.length > 0 ? (

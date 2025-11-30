@@ -62,6 +62,8 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
           src={mainImage}
           alt={productName}
           fill
+          priority
+          sizes="(max-width: 768px) 100vw, 50vw"
           className="object-contain transition-transform duration-200 ease-out"
         />
         
@@ -99,6 +101,7 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
                 src={img}
                 alt={`Vista ${index + 1}`}
                 fill
+                sizes="80px"
                 className="object-contain bg-white dark:bg-gray-700"
               />
             </button>
