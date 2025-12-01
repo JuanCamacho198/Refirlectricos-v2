@@ -57,7 +57,7 @@ export default function HeroCarousel() {
 
   const slideVariants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? 1000 : -1000,
+      x: direction > 0 ? '100%' : '-100%',
       opacity: 0
     }),
     center: {
@@ -67,7 +67,7 @@ export default function HeroCarousel() {
     },
     exit: (direction: number) => ({
       zIndex: 0,
-      x: direction < 0 ? 1000 : -1000,
+      x: direction < 0 ? '100%' : '-100%',
       opacity: 0
     })
   };
@@ -110,6 +110,7 @@ export default function HeroCarousel() {
               src={slides[current].image}
               alt={slides[current].title}
               fill
+              sizes="100vw"
               className="object-cover opacity-60 mix-blend-overlay"
               priority
             />
@@ -118,7 +119,7 @@ export default function HeroCarousel() {
           <div className="absolute inset-0 opacity-20 bg-[url('/patterns/circuit.svg')] bg-repeat"></div>
           <div className="absolute inset-0 bg-linear-to-r from-black/60 to-transparent"></div>
           
-          <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 w-full">
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-12 w-full">
             <div className="max-w-lg text-white space-y-6">
               <motion.span 
                 initial={{ opacity: 0, y: 20 }}
@@ -163,13 +164,13 @@ export default function HeroCarousel() {
       {/* Controls */}
       <button 
         onClick={() => paginate(-1)} 
-        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 transition-colors opacity-0 group-hover:opacity-100 z-20"
+        className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 transition-colors opacity-0 group-hover:opacity-100 z-20"
       >
         <ChevronLeft size={24} />
       </button>
       <button 
         onClick={() => paginate(1)} 
-        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 transition-colors opacity-0 group-hover:opacity-100 z-20"
+        className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 transition-colors opacity-0 group-hover:opacity-100 z-20"
       >
         <ChevronRight size={24} />
       </button>
