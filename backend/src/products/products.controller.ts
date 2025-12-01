@@ -81,6 +81,16 @@ export class ProductsController {
     return this.productsService.getMetadata();
   }
 
+  @Get('suggestions')
+  getSuggestions(@Query('term') term: string) {
+    return this.productsService.getSuggestions(term);
+  }
+
+  @Get(':id/recommendations')
+  getRecommendations(@Param('id') id: string) {
+    return this.productsService.getRecommendations(id);
+  }
+
   @Get('related')
   findRelated(
     @Query('category') category: string,

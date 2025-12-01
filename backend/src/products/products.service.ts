@@ -162,6 +162,58 @@ export class ProductsService {
     };
   }
 
+  async getSuggestions(term: string) {
+    if (!term) return [];
+
+    const products = await this.prisma.product.findMany({
+      where: {
+        OR: [
+          { name: { contains: term, mode: 'insensitive' } },
+          { category: { contains: term, mode: 'insensitive' } },
+          { brand: { contains: term, mode: 'insensitive' } },
+        ],
+        isActive: true,
+      },
+      select: {
+        name: true,
+        category: true,
+        brand: true,
+        image_url: true,
+        slug: true,
+        id: true,
+      },
+      take: 5,
+    });
+
+    return products;
+  }
+
+  async getRecommendations(id: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      select: { category: true, tags: true },
+    });
+
+    if (!product) return [];
+
+    return this.prisma.product.findMany({
+      where: {
+        id: { not: id },
+        isActive: true,
+        OR: [
+          { category: product.category },
+          { tags: { hasSome: product.tags } },
+        ],
+      },
+      take: 4,
+      orderBy: {
+        // Prioritize newer products or maybe random?
+        // Prisma doesn't support random easily.
+        createdAt: 'desc',
+      },
+    });
+  }
+
   async findRelated(category: string, excludeId: string) {
     return this.prisma.product.findMany({
       where: {
