@@ -1,15 +1,10 @@
-'use client';
-
-import { useState, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import api from '@/lib/api';
+import Link from 'next/link';
+import { Search } from 'lucide-react';
 import ProductCard from '@/components/features/products/ProductCard';
-import ProductCardSkeleton from '@/components/features/products/ProductCardSkeleton';
-import ProductFilters from '@/components/features/products/ProductFilters';
+import ProductFiltersContainer from '@/components/features/products/ProductFiltersContainer';
+import MobileFilters from '@/components/features/products/MobileFilters';
+import Pagination from '@/components/ui/Pagination';
 import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
-import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product } from '@/types/product';
 
 interface PaginationMeta {
@@ -23,115 +18,84 @@ interface ProductsResponse {
   meta: PaginationMeta;
 }
 
-function ProductsContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+interface CategoryStructure {
+  name: string;
+  subcategories: string[];
+}
+
+interface MetadataResponse {
+  categories: string[];
+  brands: string[];
+  structure: CategoryStructure[];
+}
+
+async function getMetadata(): Promise<MetadataResponse> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  try {
+    const res = await fetch(`${apiUrl}/products/metadata`, {
+      next: { revalidate: 600 } // 10 minutes cache
+    });
+    if (!res.ok) return { categories: [], brands: [], structure: [] };
+    return res.json();
+  } catch (error) {
+    console.error('Error fetching metadata:', error);
+    return { categories: [], brands: [], structure: [] };
+  }
+}
+
+async function getProducts(searchParams: { [key: string]: string | string[] | undefined }): Promise<ProductsResponse> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+  const params = new URLSearchParams();
   
-  const [showFilters, setShowFilters] = useState(false);
+  if (searchParams.search) params.append('search', searchParams.search as string);
+  if (searchParams.category) params.append('category', searchParams.category as string);
+  if (searchParams.subcategory) params.append('subcategory', searchParams.subcategory as string);
+  if (searchParams.brand) params.append('brand', searchParams.brand as string);
+  if (searchParams.minPrice) params.append('minPrice', searchParams.minPrice as string);
+  if (searchParams.maxPrice) params.append('maxPrice', searchParams.maxPrice as string);
+  params.append('page', (searchParams.page || '1') as string);
+  params.append('limit', '12');
 
-  // Filtros desde URL
-  const searchTerm = searchParams.get('search') || '';
-  const selectedCategory = searchParams.get('category');
-  const selectedSubcategory = searchParams.get('subcategory');
-  const selectedBrand = searchParams.get('brand');
-  const minPrice = searchParams.get('minPrice');
-  const maxPrice = searchParams.get('maxPrice');
-  const page = parseInt(searchParams.get('page') || '1');
+  try {
+    const res = await fetch(`${apiUrl}/products?${params.toString()}`, {
+      cache: 'no-store'
+    });
+    
+    if (!res.ok) {
+      return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
+    }
+    
+    return res.json();
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
+  }
+}
 
-  // Query para Metadata (Categorías y Marcas)
-  const { data: metadata } = useQuery({
-    queryKey: ['products-metadata'],
-    queryFn: async () => {
-      const { data } = await api.get('/products/metadata');
-      return data;
-    },
-    staleTime: 1000 * 60 * 10, // 10 minutos
-  });
-
-  // Query para Productos
-  const { data: productsData, isLoading } = useQuery<ProductsResponse>({
-    queryKey: ['products', page, searchTerm, selectedCategory, selectedSubcategory, selectedBrand, minPrice, maxPrice],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (selectedCategory) params.append('category', selectedCategory);
-      if (selectedSubcategory) params.append('subcategory', selectedSubcategory);
-      if (selectedBrand) params.append('brand', selectedBrand);
-      if (minPrice) params.append('minPrice', minPrice);
-      if (maxPrice) params.append('maxPrice', maxPrice);
-      params.append('page', page.toString());
-      params.append('limit', '12');
-
-      const { data } = await api.get(`/products?${params.toString()}`);
-      return data;
-    },
-  });
-
-  const products = productsData?.data || [];
-  const meta = productsData?.meta || { total: 0, page: 1, lastPage: 1 };
-  const categories = metadata?.categories || [];
-  const brands = metadata?.brands || [];
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolvedParams = await searchParams;
   
-  // Calcular subcategorías basadas en la categoría seleccionada
+  const [metadata, productsData] = await Promise.all([
+    getMetadata(),
+    getProducts(resolvedParams)
+  ]);
+
+  const products = productsData.data || [];
+  const meta = productsData.meta || { total: 0, page: 1, lastPage: 1 };
+  
+  const categories = metadata.categories || [];
+  const brands = metadata.brands || [];
+  const structure = metadata.structure || [];
+
+  // Calculate subcategories based on selected category
+  const selectedCategory = resolvedParams.category as string;
   const subcategories = selectedCategory 
-    ? metadata?.structure?.find((c: { name: string; subcategories: string[] }) => c.name === selectedCategory)?.subcategories || []
+    ? structure.find((c) => c.name === selectedCategory)?.subcategories || []
     : [];
-
-  const updateUrl = (key: string, value: string | null) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
-    if (key !== 'page') {
-      params.set('page', '1');
-    }
-    router.push(`/products?${params.toString()}`);
-  };
-
-  const handleCategoryChange = (category: string | null) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (category) {
-      params.set('category', category);
-    } else {
-      params.delete('category');
-    }
-    // Reset subcategory when category changes
-    params.delete('subcategory');
-    params.set('page', '1');
-    router.push(`/products?${params.toString()}`);
-  };
-
-  const handleSubcategoryChange = (subcategory: string | null) => {
-    updateUrl('subcategory', subcategory);
-  };
-
-  const handleBrandChange = (brand: string | null) => {
-    updateUrl('brand', brand);
-  };
-
-  const handlePriceRangeChange = (type: 'min' | 'max', value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(type === 'min' ? 'minPrice' : 'maxPrice', value);
-    } else {
-      params.delete(type === 'min' ? 'minPrice' : 'maxPrice');
-    }
-    params.set('page', '1');
-    router.push(`/products?${params.toString()}`);
-  };
-
-  const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', newPage.toString());
-    router.push(`/products?${params.toString()}`);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const clearFilters = () => {
-    router.push('/products');
-  };
 
   return (
     <>
@@ -142,105 +106,40 @@ function ProductsContent() {
         </div>
         
         <div className="w-full md:w-auto flex gap-2 justify-end">
-          <Button 
-            variant="outline" 
-            className="md:hidden"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter size={20} />
-          </Button>
+          <MobileFilters 
+            categories={categories}
+            subcategories={subcategories}
+            brands={brands}
+            structure={structure}
+          />
         </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar de Filtros (Desktop) */}
         <aside className="hidden lg:block lg:w-64 shrink-0">
-          <ProductFilters
+          <ProductFiltersContainer
             categories={categories}
             subcategories={subcategories}
             brands={brands}
-            selectedCategory={selectedCategory}
-            selectedSubcategory={selectedSubcategory}
-            selectedBrand={selectedBrand}
-            priceRange={{ min: minPrice || '', max: maxPrice || '' }}
-            onCategoryChange={handleCategoryChange}
-            onSubcategoryChange={handleSubcategoryChange}
-            onBrandChange={handleBrandChange}
-            onPriceRangeChange={handlePriceRangeChange}
-            onClearFilters={clearFilters}
+            structure={structure}
           />
         </aside>
 
-        {/* Modal de Filtros (Mobile) */}
-        <Modal 
-          isOpen={showFilters} 
-          onClose={() => setShowFilters(false)} 
-          title="Filtrar Productos"
-        >
-          <ProductFilters
-            categories={categories}
-            subcategories={subcategories}
-            brands={brands}
-            selectedCategory={selectedCategory}
-            selectedSubcategory={selectedSubcategory}
-            selectedBrand={selectedBrand}
-            priceRange={{ min: minPrice || '', max: maxPrice || '' }}
-            onCategoryChange={handleCategoryChange}
-            onSubcategoryChange={handleSubcategoryChange}
-            onBrandChange={handleBrandChange}
-            onPriceRangeChange={handlePriceRangeChange}
-            onClearFilters={clearFilters}
-            className="shadow-none border-none p-0 static"
-          />
-          <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
-            <Button onClick={() => setShowFilters(false)} className="w-full">
-              Ver Resultados
-            </Button>
-          </div>
-        </Modal>
-
         {/* Grid de Productos */}
         <div className="flex-1">
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <ProductCardSkeleton key={i} />
-              ))}
-            </div>
-          ) : products.length > 0 ? (
+          {products.length > 0 ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {products.map((product) => (
+                {products.map((product: Product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
 
-              {/* Paginación */}
-              {meta.lastPage > 1 && (
-                <div className="flex justify-center items-center gap-2">
-                  <Button
-                    variant="outline"
-                    disabled={meta.page === 1}
-                    onClick={() => handlePageChange(meta.page - 1)}
-                    className="p-2"
-                  >
-                    <ChevronLeft size={20} />
-                  </Button>
-                  
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Página {meta.page} de {meta.lastPage}
-                  </span>
-
-                  <Button
-                    variant="outline"
-                    disabled={meta.page === meta.lastPage}
-                    onClick={() => handlePageChange(meta.page + 1)}
-                    className="p-2"
-                  >
-                    <ChevronRight size={20} />
-                  </Button>
-                </div>
-              )}
+              <Pagination 
+                currentPage={meta.page} 
+                lastPage={meta.lastPage} 
+              />
             </>
           ) : (
             <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 border-dashed transition-colors">
@@ -248,22 +147,16 @@ function ProductsContent() {
               <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No se encontraron productos</h3>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Intenta con otros términos de búsqueda o filtros.</p>
               <div className="mt-6">
-                <Button onClick={clearFilters} variant="outline">
-                  Limpiar filtros
-                </Button>
+                <Link href="/products">
+                  <Button variant="outline">
+                    Limpiar filtros
+                  </Button>
+                </Link>
               </div>
             </div>
           )}
         </div>
       </div>
     </>
-  );
-}
-
-export default function ProductsPage() {
-  return (
-    <Suspense fallback={<div className="p-8 text-center">Cargando catálogo...</div>}>
-      <ProductsContent />
-    </Suspense>
   );
 }
