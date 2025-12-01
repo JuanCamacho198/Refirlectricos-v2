@@ -29,6 +29,7 @@ export default function EditProductPage() {
     image_url: product.image_url || undefined,
     brand: product.brand || undefined,
     sku: product.sku || undefined,
+    subcategory: product.subcategory || undefined,
   };
 
   return <ProductForm initialData={initialData} isEditing />;
