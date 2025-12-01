@@ -15,9 +15,10 @@ import ProductQuickView from './ProductQuickView';
 
 interface ProductCardProps {
   product: Product;
+  priority?: boolean;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, priority = false }: ProductCardProps) {
   const [isAdded, setIsAdded] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const { addItem } = useCart();
@@ -70,6 +71,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                   src={product.image_url}
                   alt={product.name}
                   fill
+                  priority={priority}
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
