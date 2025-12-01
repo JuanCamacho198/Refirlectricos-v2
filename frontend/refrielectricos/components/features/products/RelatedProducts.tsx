@@ -12,14 +12,12 @@ interface RelatedProductsProps {
 
 export default function RelatedProducts({ category, currentProductId }: RelatedProductsProps) {
   const { data: products, isLoading } = useQuery({
-    queryKey: ['related-products', category, currentProductId],
+    queryKey: ['related-products', currentProductId],
     queryFn: async () => {
-      const { data } = await api.get<Product[]>('/products/related', {
-        params: { category, excludeId: currentProductId },
-      });
+      const { data } = await api.get<Product[]>(`/products/${currentProductId}/recommendations`);
       return data;
     },
-    enabled: !!category,
+    enabled: !!currentProductId,
   });
 
   if (isLoading) {

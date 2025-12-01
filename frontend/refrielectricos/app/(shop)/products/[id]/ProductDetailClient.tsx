@@ -1,16 +1,23 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
 import Breadcrumbs from '@/components/ui/Breadcrumbs';
 import ProductGallery from '@/components/features/products/ProductGallery';
 import ProductInfo from '@/components/features/products/ProductInfo';
 import ProductDescription from '@/components/features/products/ProductDescription';
-import { ProductReviews } from '@/components/features/reviews/ProductReviews';
-import RelatedProducts from '@/components/features/products/RelatedProducts';
 import ProductDetailSkeleton from '@/components/features/products/ProductDetailSkeleton';
 import { useProduct } from '@/hooks/useProducts';
+
+const ProductReviews = dynamic(() => import('@/components/features/reviews/ProductReviews').then(mod => mod.ProductReviews), {
+  loading: () => <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />,
+});
+
+const RelatedProducts = dynamic(() => import('@/components/features/products/RelatedProducts'), {
+  loading: () => <div className="h-80 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />,
+});
 
 export default function ProductDetailClient() {
   const params = useParams();

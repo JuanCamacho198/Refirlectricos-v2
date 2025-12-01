@@ -1,13 +1,28 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Package, ShoppingBag, Users, DollarSign } from 'lucide-react';
 import api from '@/lib/api';
-import RevenueChart from '@/components/features/admin/dashboard/RevenueChart';
-import OrderStatusChart from '@/components/features/admin/dashboard/OrderStatusChart';
-import RecentOrders from '@/components/features/admin/dashboard/RecentOrders';
-import TopProducts from '@/components/features/admin/dashboard/TopProducts';
 import DashboardSkeleton from '@/components/features/admin/dashboard/DashboardSkeleton';
+
+const RevenueChart = dynamic(() => import('@/components/features/admin/dashboard/RevenueChart'), {
+  loading: () => <div className="h-[400px] bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />,
+  ssr: false,
+});
+
+const OrderStatusChart = dynamic(() => import('@/components/features/admin/dashboard/OrderStatusChart'), {
+  loading: () => <div className="h-[300px] bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />,
+  ssr: false,
+});
+
+const RecentOrders = dynamic(() => import('@/components/features/admin/dashboard/RecentOrders'), {
+  loading: () => <div className="h-[400px] bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />,
+});
+
+const TopProducts = dynamic(() => import('@/components/features/admin/dashboard/TopProducts'), {
+  loading: () => <div className="h-[400px] bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />,
+});
 
 interface DashboardStats {
   products: number;

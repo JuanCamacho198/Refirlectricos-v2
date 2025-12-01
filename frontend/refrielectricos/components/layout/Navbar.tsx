@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAddresses } from '@/hooks/useAddresses';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import NotificationsDropdown from '@/components/layout/NotificationsDropdown';
+import SearchBox from '@/components/features/search/SearchBox';
 
 export default function Navbar() {
   const { totalItems } = useCart();
@@ -20,7 +21,6 @@ export default function Navbar() {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
   const defaultAddress = user ? (addresses.find(a => a.isDefault) || addresses[0]) : null;
@@ -39,14 +39,6 @@ export default function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchQuery)}`);
-      setIsMobileMenuOpen(false);
-    }
-  };
 
   const categories = [
     "Refrigeración",
@@ -93,18 +85,7 @@ export default function Navbar() {
 
           {/* Search Bar (Expanded) */}
           <div className="flex-1 max-w-2xl mx-auto hidden md:block">
-            <form onSubmit={handleSearch} className="relative group">
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-              </div>
-              <input
-                type="text"
-                placeholder="Buscar productos, marcas y más..."
-                className="block w-full pl-4 pr-10 py-2.5 border border-gray-200 dark:border-gray-700 rounded-full leading-5 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:bg-white dark:focus:bg-gray-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all duration-200 shadow-sm"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </form>
+            <SearchBox />
           </div>
 
           {/* Theme Toggle (Moved to top right for balance) */}
