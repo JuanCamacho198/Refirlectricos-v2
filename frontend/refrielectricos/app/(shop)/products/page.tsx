@@ -32,6 +32,7 @@ function ProductsContent() {
   // Filtros desde URL
   const searchTerm = searchParams.get('search') || '';
   const selectedCategory = searchParams.get('category');
+  const selectedSubcategory = searchParams.get('subcategory');
   const selectedBrand = searchParams.get('brand');
   const minPrice = searchParams.get('minPrice');
   const maxPrice = searchParams.get('maxPrice');
@@ -49,11 +50,12 @@ function ProductsContent() {
 
   // Query para Productos
   const { data: productsData, isLoading } = useQuery<ProductsResponse>({
-    queryKey: ['products', page, searchTerm, selectedCategory, selectedBrand, minPrice, maxPrice],
+    queryKey: ['products', page, searchTerm, selectedCategory, selectedSubcategory, selectedBrand, minPrice, maxPrice],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (selectedCategory) params.append('category', selectedCategory);
+      if (selectedSubcategory) params.append('subcategory', selectedSubcategory);
       if (selectedBrand) params.append('brand', selectedBrand);
       if (minPrice) params.append('minPrice', minPrice);
       if (maxPrice) params.append('maxPrice', maxPrice);
@@ -69,6 +71,11 @@ function ProductsContent() {
   const meta = productsData?.meta || { total: 0, page: 1, lastPage: 1 };
   const categories = metadata?.categories || [];
   const brands = metadata?.brands || [];
+  
+  // Calcular subcategorías basadas en la categoría seleccionada
+  const subcategories = selectedCategory 
+    ? metadata?.structure?.find((c: { name: string; subcategories: string[] }) => c.name === selectedCategory)?.subcategories || []
+    : [];
 
   const updateUrl = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -84,7 +91,20 @@ function ProductsContent() {
   };
 
   const handleCategoryChange = (category: string | null) => {
-    updateUrl('category', category);
+    const params = new URLSearchParams(searchParams.toString());
+    if (category) {
+      params.set('category', category);
+    } else {
+      params.delete('category');
+    }
+    // Reset subcategory when category changes
+    params.delete('subcategory');
+    params.set('page', '1');
+    router.push(`/products?${params.toString()}`);
+  };
+
+  const handleSubcategoryChange = (subcategory: string | null) => {
+    updateUrl('subcategory', subcategory);
   };
 
   const handleBrandChange = (brand: string | null) => {
@@ -137,11 +157,14 @@ function ProductsContent() {
         <aside className="hidden lg:block lg:w-64 shrink-0">
           <ProductFilters
             categories={categories}
+            subcategories={subcategories}
             brands={brands}
             selectedCategory={selectedCategory}
+            selectedSubcategory={selectedSubcategory}
             selectedBrand={selectedBrand}
             priceRange={{ min: minPrice || '', max: maxPrice || '' }}
             onCategoryChange={handleCategoryChange}
+            onSubcategoryChange={handleSubcategoryChange}
             onBrandChange={handleBrandChange}
             onPriceRangeChange={handlePriceRangeChange}
             onClearFilters={clearFilters}
@@ -156,11 +179,14 @@ function ProductsContent() {
         >
           <ProductFilters
             categories={categories}
+            subcategories={subcategories}
             brands={brands}
             selectedCategory={selectedCategory}
+            selectedSubcategory={selectedSubcategory}
             selectedBrand={selectedBrand}
             priceRange={{ min: minPrice || '', max: maxPrice || '' }}
             onCategoryChange={handleCategoryChange}
+            onSubcategoryChange={handleSubcategoryChange}
             onBrandChange={handleBrandChange}
             onPriceRangeChange={handlePriceRangeChange}
             onClearFilters={clearFilters}

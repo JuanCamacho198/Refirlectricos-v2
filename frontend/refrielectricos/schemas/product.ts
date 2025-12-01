@@ -12,6 +12,7 @@ export const productSchema = z.object({
     .or(z.literal('')),
   images_url: z.array(z.string().url()).optional(),
   category: z.string().optional(),
+  subcategory: z.string().optional(),
   brand: z.string().optional(),
   sku: z.string().optional(),
   tags: z.array(z.string()).optional(),

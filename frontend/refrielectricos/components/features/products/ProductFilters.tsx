@@ -6,11 +6,14 @@ import Input from '@/components/ui/Input';
 
 interface ProductFiltersProps {
   categories: string[];
+  subcategories: string[];
   brands: string[];
   selectedCategory: string | null;
+  selectedSubcategory: string | null;
   selectedBrand: string | null;
   priceRange: { min: string; max: string };
   onCategoryChange: (category: string | null) => void;
+  onSubcategoryChange: (subcategory: string | null) => void;
   onBrandChange: (brand: string | null) => void;
   onPriceRangeChange: (type: 'min' | 'max', value: string) => void;
   onClearFilters: () => void;
@@ -19,17 +22,20 @@ interface ProductFiltersProps {
 
 export default function ProductFilters({
   categories,
+  subcategories,
   brands,
   selectedCategory,
+  selectedSubcategory,
   selectedBrand,
   priceRange,
   onCategoryChange,
+  onSubcategoryChange,
   onBrandChange,
   onPriceRangeChange,
   onClearFilters,
   className
 }: ProductFiltersProps) {
-  const hasActiveFilters = selectedCategory || selectedBrand || priceRange.min || priceRange.max;
+  const hasActiveFilters = selectedCategory || selectedSubcategory || selectedBrand || priceRange.min || priceRange.max;
   
   // Estado local para debounce
   const [localMin, setLocalMin] = useState(priceRange.min);
@@ -118,6 +124,37 @@ export default function ProductFilters({
             ))}
           </div>
         </div>
+
+        {/* Subcategorías */}
+        {subcategories.length > 0 && (
+          <div>
+            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-200 mb-3">Subcategorías</h4>
+            <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+              <label className="flex items-center cursor-pointer group">
+                <input
+                  type="radio"
+                  name="subcategory"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                  checked={selectedSubcategory === null}
+                  onChange={() => onSubcategoryChange(null)}
+                />
+                <span className="ml-2 text-sm text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Todas</span>
+              </label>
+              {subcategories.map(subcategory => (
+                <label key={subcategory} className="flex items-center cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="subcategory"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                    checked={selectedSubcategory === subcategory}
+                    onChange={() => onSubcategoryChange(subcategory)}
+                  />
+                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{subcategory}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Marcas */}
         {brands.length > 0 && (

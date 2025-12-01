@@ -8,6 +8,7 @@ export interface Product {
   image_url: string | null;
   images_url: string[];
   category: string;
+  subcategory: string | null;
   brand: string | null;
   sku: string | null;
   tags: string[];

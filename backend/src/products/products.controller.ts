@@ -55,6 +55,7 @@ export class ProductsController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'category', required: false, type: String })
+  @ApiQuery({ name: 'subcategory', required: false, type: String })
   @ApiQuery({ name: 'brand', required: false, type: String })
   @ApiQuery({ name: 'minPrice', required: false, type: Number })
   @ApiQuery({ name: 'maxPrice', required: false, type: Number })
@@ -63,6 +64,7 @@ export class ProductsController {
     @Query('limit', new DefaultValuePipe(12), ParseIntPipe) limit: number,
     @Query('search') search?: string,
     @Query('category') category?: string,
+    @Query('subcategory') subcategory?: string,
     @Query('brand') brand?: string,
     @Query('minPrice') minPrice?: string,
     @Query('maxPrice') maxPrice?: string,
@@ -70,6 +72,7 @@ export class ProductsController {
     return this.productsService.findAll(page, limit, {
       search,
       category,
+      subcategory,
       brand,
       minPrice: minPrice ? Number(minPrice) : undefined,
       maxPrice: maxPrice ? Number(maxPrice) : undefined,

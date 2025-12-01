@@ -80,6 +80,12 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             <span className="font-medium text-gray-900 dark:text-white">{product.category}</span>
           </div>
         )}
+        {product.subcategory && (
+          <div className="flex flex-col">
+            <span className="text-gray-500 dark:text-gray-400 text-xs">Subcategoría</span>
+            <span className="font-medium text-gray-900 dark:text-white">{product.subcategory}</span>
+          </div>
+        )}
         {product.brand && (
           <div className="flex flex-col">
             <span className="text-gray-500 dark:text-gray-400 text-xs">Marca</span>

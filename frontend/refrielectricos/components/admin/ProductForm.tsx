@@ -150,12 +150,18 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
             label="Categoría"
             {...register('category')}
             error={errors.category?.message}
             placeholder="Ej: Refrigeración"
+          />
+          <Input
+            label="Subcategoría"
+            {...register('subcategory')}
+            error={errors.subcategory?.message}
+            placeholder="Ej: Neveras"
           />
           <Input
             label="Marca"

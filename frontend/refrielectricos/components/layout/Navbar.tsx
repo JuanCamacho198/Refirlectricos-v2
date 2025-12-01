@@ -3,9 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { ShoppingCart, LogOut, Settings, MapPin, Package, LayoutDashboard, Heart, Search, Menu, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { ShoppingCart, LogOut, Settings, MapPin, Package, LayoutDashboard, Heart, Menu, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { useAddresses } from '@/hooks/useAddresses';
@@ -26,10 +25,8 @@ export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   const defaultAddress = user ? (addresses.find(a => a.isDefault) || addresses[0]) : null;
 
@@ -140,8 +137,6 @@ export default function Navbar() {
                       <div 
                         key={cat.name} 
                         className="group relative"
-                        onMouseEnter={() => setActiveCategory(cat.name)}
-                        onMouseLeave={() => setActiveCategory(null)}
                       >
                         <Link
                           href={`/products?category=${encodeURIComponent(cat.name)}`}
@@ -158,12 +153,12 @@ export default function Navbar() {
                         {cat.subcategories.length > 0 && (
                           <div className="hidden md:block absolute left-full top-0 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-2 ring-1 ring-black ring-opacity-5 border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 -ml-1">
                             <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 mb-1">
-                              Marcas
+                              Subcategorías
                             </div>
                             {cat.subcategories.map((sub) => (
                               <Link
                                 key={sub}
-                                href={`/products?category=${encodeURIComponent(cat.name)}&brand=${encodeURIComponent(sub)}`}
+                                href={`/products?category=${encodeURIComponent(cat.name)}&subcategory=${encodeURIComponent(sub)}`}
                                 className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                 onClick={() => setIsCategoriesOpen(false)}
                               >

@@ -59,6 +59,7 @@ export class ProductsService {
     filters?: {
       search?: string;
       category?: string;
+      subcategory?: string;
       brand?: string;
       minPrice?: number;
       maxPrice?: number;
@@ -72,11 +73,16 @@ export class ProductsService {
         { name: { contains: filters.search, mode: 'insensitive' } },
         { description: { contains: filters.search, mode: 'insensitive' } },
         { brand: { contains: filters.search, mode: 'insensitive' } },
+        { subcategory: { contains: filters.search, mode: 'insensitive' } },
       ];
     }
 
     if (filters?.category) {
       where.category = filters.category;
+    }
+
+    if (filters?.subcategory) {
+      where.subcategory = filters.subcategory;
     }
 
     if (filters?.brand) {
@@ -145,7 +151,7 @@ export class ProductsService {
 
   async getMetadata() {
     const grouped = await this.prisma.product.groupBy({
-      by: ['category', 'brand'],
+      by: ['category', 'subcategory', 'brand'],
       where: {
         isActive: true,
         category: { not: '' }, // Ensure category is not empty
@@ -155,7 +161,7 @@ export class ProductsService {
       },
     });
 
-    // Transform into a structured format: Category -> Brands[]
+    // Transform into a structured format: Category -> Subcategories[]
     const categoryMap = new Map<string, Set<string>>();
 
     grouped.forEach((item) => {
@@ -163,15 +169,15 @@ export class ProductsService {
       if (!categoryMap.has(item.category)) {
         categoryMap.set(item.category, new Set());
       }
-      if (item.brand) {
-        categoryMap.get(item.category).add(item.brand);
+      if (item.subcategory) {
+        categoryMap.get(item.category).add(item.subcategory);
       }
     });
 
-    const categoriesWithBrands = Array.from(categoryMap.entries()).map(
-      ([category, brandsSet]) => ({
+    const categoriesWithSubcategories = Array.from(categoryMap.entries()).map(
+      ([category, subcategoriesSet]) => ({
         name: category,
-        subcategories: Array.from(brandsSet).sort(),
+        subcategories: Array.from(subcategoriesSet).sort(),
       }),
     );
 
@@ -185,10 +191,9 @@ export class ProductsService {
     return {
       categories: allCategories,
       brands: allBrands,
-      structure: categoriesWithBrands,
+      structure: categoriesWithSubcategories,
     };
   }
-
   async getSuggestions(term: string) {
     if (!term) return [];
 

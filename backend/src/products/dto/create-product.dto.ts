@@ -1,4 +1,12 @@
-import { IsString, IsNumber, IsOptional, IsInt, Min, IsArray, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsInt,
+  Min,
+  IsArray,
+  IsBoolean,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateProductDto {
@@ -32,6 +40,10 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   category?: string;
+
+  @IsString()
+  @IsOptional()
+  subcategory?: string;
 
   @IsString()
   @IsOptional()

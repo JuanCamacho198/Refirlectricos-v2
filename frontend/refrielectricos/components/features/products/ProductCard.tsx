@@ -122,8 +122,8 @@ export default function ProductCard({ product }: ProductCardProps) {
               {(product.category || product.brand) && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 truncate">
                   {product.brand && <span className="font-medium text-gray-700 dark:text-gray-300">{product.brand}</span>}
-                  {product.brand && product.category && <span className="mx-1">•</span>}
-                  {product.category}
+                  {product.brand && (product.subcategory || product.category) && <span className="mx-1">•</span>}
+                  {product.subcategory || product.category}
                 </p>
               )}
               <Link href={productLink}>

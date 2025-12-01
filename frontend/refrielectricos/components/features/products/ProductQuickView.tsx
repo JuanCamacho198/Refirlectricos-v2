@@ -54,8 +54,8 @@ export default function ProductQuickView({ product, isOpen, onClose }: ProductQu
             </h2>
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
               {product.brand && <span className="font-medium">{product.brand}</span>}
-              {product.brand && product.category && <span>•</span>}
-              <span>{product.category}</span>
+              {product.brand && (product.subcategory || product.category) && <span>•</span>}
+              <span>{product.subcategory || product.category}</span>
             </div>
             <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-4">
               {formatCurrency(Number(product.price))}

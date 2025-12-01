@@ -66,6 +66,7 @@ model Product {
   stock         Int            @default(0)
   image_url     String?
   category      String         @default("General") // Nuevo: Categoría principal
+  subcategory   String?        // Nuevo: Subcategoría
   brand         String?        // Nuevo: Marca del producto
   sku           String?        @unique // Nuevo: Código de inventario único
   tags          String[]       // Nuevo: Etiquetas para búsqueda flexible
