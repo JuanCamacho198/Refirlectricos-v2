@@ -95,7 +95,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
             
             {/* Action Buttons Overlay */}
-            <div className="absolute top-3 right-3 flex flex-col gap-2 z-10 translate-x-12 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300">
+            <div className="absolute top-3 right-3 flex flex-col gap-2 z-10 transition-all duration-300 translate-x-0 opacity-100 lg:translate-x-12 lg:opacity-0 lg:group-hover:translate-x-0 lg:group-hover:opacity-100">
               <button
                 onClick={handleToggleFavorite}
                 className="p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 dark:text-gray-300 hover:text-red-500 transition-colors"
