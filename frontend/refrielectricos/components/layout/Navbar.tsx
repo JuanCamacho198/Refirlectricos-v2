@@ -4,13 +4,20 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, LogOut, Settings, MapPin, Package, LayoutDashboard, Heart, Search, Menu, X, ChevronDown } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { ShoppingCart, LogOut, Settings, MapPin, Package, LayoutDashboard, Heart, Search, Menu, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { useAddresses } from '@/hooks/useAddresses';
+import api from '@/lib/api';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import NotificationsDropdown from '@/components/layout/NotificationsDropdown';
 import SearchBox from '@/components/features/search/SearchBox';
+
+interface CategoryStructure {
+  name: string;
+  subcategories: string[];
+}
 
 export default function Navbar() {
   const { totalItems } = useCart();
@@ -19,11 +26,23 @@ export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const defaultAddress = user ? (addresses.find(a => a.isDefault) || addresses[0]) : null;
+
+  const { data: metadata } = useQuery({
+    queryKey: ['categories-menu'],
+    queryFn: async () => {
+      const { data } = await api.get('/products/metadata');
+      return data;
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+
+  const categories: CategoryStructure[] = metadata?.structure || [];
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -39,16 +58,6 @@ export default function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const categories = [
-    "Refrigeración",
-    "Lavadoras",
-    "Aires Acondicionados",
-    "Herramientas",
-    "Repuestos",
-    "Motores",
-    "Gases Refrigerantes"
-  ];
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-200/30 dark:border-gray-700/30 transition-all shadow-sm">
@@ -125,17 +134,51 @@ export default function Navbar() {
               </button>
 
               {isCategoriesOpen && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-2 ring-1 ring-black ring-opacity-5 border border-gray-100 dark:border-gray-700 animate-in fade-in zoom-in-95 duration-100 z-50">
-                  {categories.map((cat) => (
-                    <Link
-                      key={cat}
-                      href={`/products?category=${encodeURIComponent(cat)}`}
-                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                      onClick={() => setIsCategoriesOpen(false)}
-                    >
-                      {cat}
-                    </Link>
-                  ))}
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-2 ring-1 ring-black ring-opacity-5 border border-gray-100 dark:border-gray-700 animate-in fade-in zoom-in-95 duration-100 z-50">
+                  {categories.length > 0 ? (
+                    categories.map((cat) => (
+                      <div 
+                        key={cat.name} 
+                        className="group relative"
+                        onMouseEnter={() => setActiveCategory(cat.name)}
+                        onMouseLeave={() => setActiveCategory(null)}
+                      >
+                        <Link
+                          href={`/products?category=${encodeURIComponent(cat.name)}`}
+                          className="flex items-center justify-between px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                          onClick={() => setIsCategoriesOpen(false)}
+                        >
+                          <span>{cat.name}</span>
+                          {cat.subcategories.length > 0 && (
+                            <ChevronRight size={14} className="text-gray-400" />
+                          )}
+                        </Link>
+                        
+                        {/* Subcategories Flyout */}
+                        {cat.subcategories.length > 0 && (
+                          <div className="hidden md:block absolute left-full top-0 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-2 ring-1 ring-black ring-opacity-5 border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 -ml-1">
+                            <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700 mb-1">
+                              Marcas
+                            </div>
+                            {cat.subcategories.map((sub) => (
+                              <Link
+                                key={sub}
+                                href={`/products?category=${encodeURIComponent(cat.name)}&brand=${encodeURIComponent(sub)}`}
+                                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                onClick={() => setIsCategoriesOpen(false)}
+                              >
+                                {sub}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+                      Cargando categorías...
+                    </div>
+                  )}
                   <div className="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2">
                     <Link
                       href="/products"

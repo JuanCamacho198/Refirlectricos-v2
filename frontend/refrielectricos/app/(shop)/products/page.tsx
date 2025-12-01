@@ -27,8 +27,6 @@ function ProductsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  // Estado local para input de búsqueda (para no actualizar URL en cada tecla)
-  const [localSearchTerm, setLocalSearchTerm] = useState(searchParams.get('search') || '');
   const [showFilters, setShowFilters] = useState(false);
 
   // Filtros desde URL
@@ -85,15 +83,6 @@ function ProductsContent() {
     router.push(`/products?${params.toString()}`);
   };
 
-  const handleSearch = (value: string) => {
-    setLocalSearchTerm(value);
-    // Debounce manual o esperar enter
-    const timeoutId = setTimeout(() => {
-      updateUrl('search', value || null);
-    }, 500);
-    return () => clearTimeout(timeoutId);
-  };
-
   const handleCategoryChange = (category: string | null) => {
     updateUrl('category', category);
   };
@@ -121,7 +110,6 @@ function ProductsContent() {
   };
 
   const clearFilters = () => {
-    setLocalSearchTerm('');
     router.push('/products');
   };
 
@@ -133,19 +121,7 @@ function ProductsContent() {
           <p className="mt-2 text-gray-600 dark:text-gray-400">Explora nuestra variedad de repuestos y equipos.</p>
         </div>
         
-        <div className="w-full md:w-auto flex gap-2">
-          <div className="relative w-full md:w-64">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-            </div>
-            <input
-              type="text"
-              placeholder="Buscar productos..."
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-              value={localSearchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-            />
-          </div>
+        <div className="w-full md:w-auto flex gap-2 justify-end">
           <Button 
             variant="outline" 
             className="md:hidden"

@@ -144,21 +144,48 @@ export class ProductsService {
   }
 
   async getMetadata() {
-    const [categories, brands] = await Promise.all([
-      this.prisma.product.findMany({
-        select: { category: true },
-        distinct: ['category'],
+    const grouped = await this.prisma.product.groupBy({
+      by: ['category', 'brand'],
+      where: {
+        isActive: true,
+        category: { not: '' }, // Ensure category is not empty
+      },
+      orderBy: {
+        category: 'asc',
+      },
+    });
+
+    // Transform into a structured format: Category -> Brands[]
+    const categoryMap = new Map<string, Set<string>>();
+
+    grouped.forEach((item) => {
+      if (!item.category) return;
+      if (!categoryMap.has(item.category)) {
+        categoryMap.set(item.category, new Set());
+      }
+      if (item.brand) {
+        categoryMap.get(item.category).add(item.brand);
+      }
+    });
+
+    const categoriesWithBrands = Array.from(categoryMap.entries()).map(
+      ([category, brandsSet]) => ({
+        name: category,
+        subcategories: Array.from(brandsSet).sort(),
       }),
-      this.prisma.product.findMany({
-        select: { brand: true },
-        distinct: ['brand'],
-        where: { brand: { not: null } },
-      }),
-    ]);
+    );
+
+    // Maintain backward compatibility for simple lists if needed,
+    // but for now we return the structured data + flat lists
+    const allCategories = Array.from(categoryMap.keys()).sort();
+    const allBrands = Array.from(
+      new Set(grouped.map((g) => g.brand).filter(Boolean)),
+    ).sort();
 
     return {
-      categories: categories.map((c) => c.category).filter(Boolean),
-      brands: brands.map((b) => b.brand).filter(Boolean),
+      categories: allCategories,
+      brands: allBrands,
+      structure: categoriesWithBrands,
     };
   }
 
