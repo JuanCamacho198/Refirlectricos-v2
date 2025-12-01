@@ -12,7 +12,7 @@ const slides = [
     title: "Repuestos de Refrigeración",
     subtitle: "La mejor calidad para tus reparaciones",
     description: "Encuentra compresores, termostatos, gases refrigerantes y más.",
-    image: "/images/hero-1.jpg", // Placeholder path
+    image: "/frontend/refrielectricos/public/images/carrusel2.jpg",
     color: "bg-blue-600",
     link: "/products?category=Refrigeración"
   },
@@ -21,7 +21,7 @@ const slides = [
     title: "Herramientas Profesionales",
     subtitle: "Equípate con lo mejor",
     description: "Bombas de vacío, manómetros y herramientas especializadas.",
-    image: "/images/hero-2.jpg",
+    image: "/frontend/refrielectricos/public/images/carrusel1.jpg",
     color: "bg-cyan-600",
     link: "/products?category=Herramientas"
   },
@@ -30,7 +30,7 @@ const slides = [
     title: "Ofertas Especiales",
     subtitle: "Precios increíbles por tiempo limitado",
     description: "Aprovecha nuestros descuentos en productos seleccionados.",
-    image: "/images/hero-3.jpg",
+    image: "/frontend/refrielectricos/public/images/carrusel3.jpg",
     color: "bg-indigo-600",
     link: "/products?sort=price_asc"
   }
