@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '@/components/ui/Button';
@@ -87,6 +88,15 @@ export default function HeroCarousel() {
           }}
           className={`absolute inset-0 w-full h-full ${slides[current].color} flex items-center`}
         >
+          <div className="absolute inset-0 z-0">
+            <Image
+              src={slides[current].image}
+              alt={slides[current].title}
+              fill
+              className="object-cover opacity-60 mix-blend-overlay"
+              priority
+            />
+          </div>
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-20 bg-[url('/patterns/circuit.svg')] bg-repeat"></div>
           <div className="absolute inset-0 bg-linear-to-r from-black/60 to-transparent"></div>
