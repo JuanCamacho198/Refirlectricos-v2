@@ -14,6 +14,7 @@ import { useProduct } from '@/hooks/useProducts';
 import { useAuthStore } from '@/store/authStore';
 import { historyService } from '@/lib/history';
 import { ProductQuestions } from '@/components/features/questions/ProductQuestions';
+import { Edit } from 'lucide-react';
 
 const ProductReviews = dynamic(() => import('@/components/features/reviews/ProductReviews').then(mod => mod.ProductReviews), {
   loading: () => <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />,
@@ -65,13 +66,23 @@ export default function ProductDetailClient() {
 
   return (
     <>
-      <Breadcrumbs 
-        items={[
-          { label: 'Productos', href: '/products' },
-          { label: product.name }
-        ]}
-        className="mb-8"
-      />
+      <div className="flex justify-between items-center mb-8">
+        <Breadcrumbs 
+          items={[
+            { label: 'Productos', href: '/products' },
+            { label: product.name }
+          ]}
+        />
+        
+        {user?.role === 'admin' && (
+          <Link href={`/admin/products/${product.id}`}>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Edit size={16} />
+              Editar
+            </Button>
+          </Link>
+        )}
+      </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden transition-colors">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
