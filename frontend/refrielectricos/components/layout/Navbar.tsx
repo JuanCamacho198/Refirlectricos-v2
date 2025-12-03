@@ -106,19 +106,22 @@ export default function Navbar() {
           {/* Left: Address & Categories */}
           <div className="flex items-center gap-6">
             {/* Address Widget */}
-            <div className="flex items-center gap-2 min-w-[180px] max-w-[250px] cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 p-1.5 rounded-md transition-colors group">
+            <Link 
+              href={user ? "/profile/addresses" : "/login"}
+              className="flex items-center gap-2 min-w-[180px] max-w-[250px] cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 p-1.5 rounded-md transition-colors group"
+            >
               <MapPin className="text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" size={20} />
               <div className="flex flex-col leading-tight">
                 <span className="text-[11px] text-gray-500 dark:text-gray-400">
                   {user ? `Enviar a ${user.name.split(' ')[0]}` : 'Hola, identifícate'}
                 </span>
-                <span className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                <span className="text-xs font-medium text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {user 
                     ? (defaultAddress ? `${defaultAddress.addressLine1}` : 'Agregar dirección') 
                     : 'Ingresa tu ubicación'}
                 </span>
               </div>
-            </div>
+            </Link>
 
             {/* Categories Dropdown */}
             <div className="relative" ref={categoriesRef}>
@@ -340,12 +343,16 @@ export default function Navbar() {
           <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4 space-y-4 animate-in slide-in-from-top-5 mt-2">
             <div className="flex flex-col space-y-2 px-2">
               {user && (
-                <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg mb-2">
+                <Link 
+                  href="/profile/addresses"
+                  className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg mb-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   <p className="text-xs text-gray-500 dark:text-gray-400">Enviar a {user.name}</p>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {defaultAddress ? defaultAddress.addressLine1 : 'Agregar dirección'}
                   </p>
-                </div>
+                </Link>
               )}
               <Link 
                 href="/contact" 
