@@ -74,15 +74,15 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
       >
         <Card className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg border-gray-200 dark:border-gray-700">
           {/* Imagen */}
-          <div className="relative w-full pt-[80%] bg-gray-100 dark:bg-gray-800 overflow-hidden block group">
-            <Link href={productLink} className="absolute inset-0">
+          <div className="relative w-full pt-[100%] bg-gray-100 dark:bg-gray-800 overflow-hidden block group">
+            <Link href={productLink} className="absolute inset-0 p-4">
               {product.image_url ? (
                 <Image
                   src={imageUrl}
                   alt={product.name}
                   fill
                   priority={priority}
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="object-contain transition-transform duration-500 group-hover:scale-105"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
               ) : (
