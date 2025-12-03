@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -18,7 +26,10 @@ export class ReviewsController {
   @Post()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  create(@Request() req: RequestWithUser, @Body() createReviewDto: CreateReviewDto) {
+  create(
+    @Request() req: RequestWithUser,
+    @Body() createReviewDto: CreateReviewDto,
+  ) {
     return this.reviewsService.create(req.user.userId, createReviewDto);
   }
 
@@ -30,7 +41,24 @@ export class ReviewsController {
   @Get('eligibility/:productId')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  checkEligibility(@Request() req: RequestWithUser, @Param('productId') productId: string) {
+  checkEligibility(
+    @Request() req: RequestWithUser,
+    @Param('productId') productId: string,
+  ) {
     return this.reviewsService.checkEligibility(req.user.userId, productId);
+  }
+
+  @Get('user/my-reviews')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  findAllByUser(@Request() req: RequestWithUser) {
+    return this.reviewsService.findAllByUser(req.user.userId);
+  }
+
+  @Get('user/pending')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  findPendingByUser(@Request() req: RequestWithUser) {
+    return this.reviewsService.findPendingByUser(req.user.userId);
   }
 }

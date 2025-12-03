@@ -114,4 +114,72 @@ export class ReviewsService {
       hasReviewed: !!existingReview,
     };
   }
+
+  async findAllByUser(userId: string) {
+    return this.prisma.review.findMany({
+      where: { userId },
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            image_url: true,
+            slug: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findPendingByUser(userId: string) {
+    // 1. Get all delivered orders
+    const orders = await this.prisma.order.findMany({
+      where: {
+        userId,
+        status: 'DELIVERED',
+      },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                image_url: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // 2. Extract all products
+    const purchasedProducts = new Map();
+    orders.forEach((order) => {
+      order.items.forEach((item) => {
+        purchasedProducts.set(item.productId, item.product);
+      });
+    });
+
+    // 3. Get existing reviews
+    const reviews = await this.prisma.review.findMany({
+      where: { userId },
+      select: { productId: true },
+    });
+
+    const reviewedProductIds = new Set(reviews.map((r) => r.productId));
+
+    // 4. Filter out reviewed products
+    const pendingProducts: any[] = [];
+    for (const [productId, product] of purchasedProducts) {
+      if (!reviewedProductIds.has(productId as string)) {
+        pendingProducts.push(product);
+      }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return pendingProducts;
+  }
 }
