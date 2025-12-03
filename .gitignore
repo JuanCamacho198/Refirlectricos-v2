@@ -5,7 +5,6 @@ node_modules/
 .pnpm-debug.log
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
 
 # Next.js / frontend
 .next/
@@ -13,6 +12,7 @@ pnpm-lock.yaml
 out/
 .vercel/
 .next/*
+frontend\refrielectricos\bun.lock
 
 # Builds / dist
 dist/
