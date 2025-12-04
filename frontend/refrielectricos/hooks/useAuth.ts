@@ -72,7 +72,7 @@ export const useAuth = () => {
     },
     onSuccess: () => {
       addToast('Cuenta creada exitosamente', 'success');
-      router.push('/login?registered=true');
+      // Don't redirect here - let the component handle auto-login and redirect
     },
     onError: (error: unknown) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

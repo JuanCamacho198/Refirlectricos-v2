@@ -34,9 +34,9 @@ export default function ContactPage() {
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-white">Dirección</h3>
                   <p className="text-gray-600 dark:text-gray-300 mt-1">
-                    Calle 123 # 45-67<br />
-                    Barrio El Centro<br />
-                    Bogotá, Colombia
+                    Calle 8 # 16-70<br />
+                    Barrio San Jose<br />
+                    Curumani, Cesar
                   </p>
                 </div>
               </div>

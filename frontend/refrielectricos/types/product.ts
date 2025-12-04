@@ -1,3 +1,8 @@
+export interface Specification {
+  label: string;
+  value: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -12,6 +17,7 @@ export interface Product {
   brand: string | null;
   sku: string | null;
   tags: string[];
+  specifications: Specification[] | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

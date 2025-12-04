@@ -30,6 +30,7 @@ export default function EditProductPage() {
     brand: product.brand || undefined,
     sku: product.sku || undefined,
     subcategory: product.subcategory || undefined,
+    specifications: product.specifications || [],
   };
 
   return <ProductForm initialData={initialData} isEditing />;

@@ -6,8 +6,17 @@ import {
   Min,
   IsArray,
   IsBoolean,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+
+export class SpecificationDto {
+  @IsString()
+  label: string;
+
+  @IsString()
+  value: string;
+}
 
 export class CreateProductDto {
   @IsString()
@@ -57,6 +66,12 @@ export class CreateProductDto {
   @IsString({ each: true })
   @IsOptional()
   tags?: string[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SpecificationDto)
+  @IsOptional()
+  specifications?: SpecificationDto[];
 
   @IsBoolean()
   @IsOptional()

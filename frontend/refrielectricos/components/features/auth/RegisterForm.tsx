@@ -1,18 +1,27 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useCart } from '@/hooks/useCart';
+import { useCartStore } from '@/store/cartStore';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Link from 'next/link';
 
 export default function RegisterForm() {
-  const { register, isRegistering } = useAuth();
+  const router = useRouter();
+  const { register, login, isRegistering } = useAuth();
+  const { mergeCart } = useCart();
+  const localItems = useCartStore(state => state.items);
+  const clearLocalCart = useCartStore(state => state.clearCart);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
   });
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -24,11 +33,31 @@ export default function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // 1. Register the user
       await register(formData);
+      
+      // 2. Auto-login after registration
+      setIsLoggingIn(true);
+      await login({ email: formData.email, password: formData.password, rememberMe: true });
+      
+      // 3. Merge local cart to user's account (only on registration)
+      if (localItems.length > 0) {
+        const itemsToMerge = localItems.map(item => ({
+          productId: item.id,
+          quantity: item.quantity
+        }));
+        await mergeCart(itemsToMerge);
+        clearLocalCart();
+      }
+
+      router.push('/');
     } catch {
       // Error handled in hook
+      setIsLoggingIn(false);
     }
   };
+
+  const isProcessing = isRegistering || isLoggingIn;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -75,9 +104,9 @@ export default function RegisterForm() {
       <Button
         type="submit"
         className="w-full"
-        disabled={isRegistering}
+        disabled={isProcessing}
       >
-        {isRegistering ? 'Registrando...' : 'Crear cuenta'}
+        {isRegistering ? 'Creando cuenta...' : isLoggingIn ? 'Iniciando sesión...' : 'Crear cuenta'}
       </Button>
 
       <div className="text-center text-sm text-gray-600 dark:text-gray-400">

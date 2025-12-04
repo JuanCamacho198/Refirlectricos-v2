@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { useCart } from '@/hooks/useCart';
 import { useCartStore } from '@/store/cartStore';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -13,8 +12,6 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, isLoggingIn } = useAuth();
-  const { mergeCart } = useCart();
-  const localItems = useCartStore(state => state.items);
   const clearLocalCart = useCartStore(state => state.clearCart);
 
   const [formData, setFormData] = useState({
@@ -37,14 +34,9 @@ export default function LoginForm() {
     try {
       await login({ ...formData, rememberMe });
       
-      if (localItems.length > 0) {
-        const itemsToMerge = localItems.map(item => ({
-          productId: item.id,
-          quantity: item.quantity
-        }));
-        await mergeCart(itemsToMerge);
-        clearLocalCart();
-      }
+      // On login, discard local cart and use server cart
+      // (merge only happens on registration)
+      clearLocalCart();
 
       router.push('/');
     } catch {

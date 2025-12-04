@@ -9,6 +9,7 @@ import Breadcrumbs from '@/components/ui/Breadcrumbs';
 import ProductGallery from '@/components/features/products/ProductGallery';
 import ProductInfo from '@/components/features/products/ProductInfo';
 import ProductDescription from '@/components/features/products/ProductDescription';
+import ProductSpecifications from '@/components/features/products/ProductSpecifications';
 import ProductDetailSkeleton from '@/components/features/products/ProductDetailSkeleton';
 import { useProduct } from '@/hooks/useProducts';
 import { useAuthStore } from '@/store/authStore';
@@ -96,6 +97,11 @@ export default function ProductDetailClient() {
 
       {/* Descripción y Detalles */}
       <ProductDescription description={product.description || ''} tags={product.tags} />
+
+      {/* Especificaciones */}
+      {product.specifications && product.specifications.length > 0 && (
+        <ProductSpecifications specifications={product.specifications} />
+      )}
 
       {/* Productos Relacionados */}
       {product.category && (

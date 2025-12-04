@@ -6,15 +6,25 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Save, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
 import Combobox from '@/components/ui/Combobox';
 import ImageUpload from '@/components/ui/ImageUpload';
 import MultiImageUpload from '@/components/ui/MultiImageUpload';
+import SpecificationsEditor from '@/components/admin/SpecificationsEditor';
 import { productSchema, ProductFormData } from '@/schemas/product';
 import { useToast } from '@/context/ToastContext';
 import { useCreateProduct, useUpdateProduct, useProductMetadata } from '@/hooks/useProducts';
+
+// Dynamic import for RichTextEditor to avoid SSR issues
+const RichTextEditor = dynamic(() => import('@/components/admin/RichTextEditor'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 min-h-40 animate-pulse" />
+  ),
+});
 
 interface ProductFormProps {
   initialData?: ProductFormData & { id: string };
@@ -51,6 +61,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       stock: 0,
       image_url: '',
       images_url: [],
+      specifications: [],
     },
   });
 
@@ -75,6 +86,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       image_url: pendingData.image_url || undefined,
       images_url: pendingData.images_url || undefined,
       description: pendingData.description || undefined,
+      specifications: pendingData.specifications?.filter(s => s.label && s.value) || undefined,
     };
 
     try {
@@ -125,20 +137,26 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
           placeholder="Ej: Nevera Samsung 300L"
         />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-            Descripción
-          </label>
-          <textarea
-            {...register('description')}
-            rows={4}
-            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Detalles del producto..."
-          />
-          {errors.description && (
-            <p className="mt-1 text-sm text-red-500">{errors.description.message}</p>
+        <Controller
+          name="description"
+          control={control}
+          render={({ field }) => (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                Descripción
+              </label>
+              <RichTextEditor
+                value={field.value || ''}
+                onChange={field.onChange}
+                placeholder="Detalles del producto..."
+                disabled={isSaving}
+              />
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-500">{errors.description.message}</p>
+              )}
+            </div>
           )}
-        </div>
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
@@ -254,6 +272,19 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
             {errors.tags && <p className="mt-1 text-sm text-red-600">{errors.tags.message}</p>}
           </div>
         </div>
+
+        {/* Specifications Editor */}
+        <Controller
+          name="specifications"
+          control={control}
+          render={({ field }) => (
+            <SpecificationsEditor
+              value={field.value || []}
+              onChange={field.onChange}
+              disabled={isSaving}
+            />
+          )}
+        />
 
         <Controller
           name="image_url"

@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+export const specificationSchema = z.object({
+  label: z.string().min(1, 'La etiqueta es requerida'),
+  value: z.string().min(1, 'El valor es requerido'),
+});
+
 export const productSchema = z.object({
   name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
   description: z.string().optional(),
@@ -16,7 +21,9 @@ export const productSchema = z.object({
   brand: z.string().optional(),
   sku: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  specifications: z.array(specificationSchema).optional(),
   isActive: z.boolean().optional(),
 });
 
 export type ProductFormData = z.infer<typeof productSchema>;
+export type SpecificationFormData = z.infer<typeof specificationSchema>;
