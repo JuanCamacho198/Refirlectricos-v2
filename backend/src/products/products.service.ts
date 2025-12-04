@@ -36,10 +36,15 @@ export class ProductsService {
         );
       }
 
+      const specificationsValue = createProductDto.specifications
+        ? (createProductDto.specifications as Prisma.InputJsonValue)
+        : undefined;
+
       const product = await this.prisma.product.create({
         data: {
           ...createProductDto,
           slug,
+          specifications: specificationsValue,
         },
       });
       console.log('ProductsService: Product created successfully:', product.id);
@@ -137,10 +142,15 @@ export class ProductsService {
 
   async update(id: string, updateProductDto: UpdateProductDto) {
     const { name } = updateProductDto;
-    const data = { ...updateProductDto, slug: undefined };
+    const data: Prisma.ProductUpdateInput = { ...updateProductDto };
 
     if (name) {
       data.slug = slugify(name, { lower: true, strict: true });
+    }
+
+    if (updateProductDto.specifications) {
+      data.specifications =
+        updateProductDto.specifications as Prisma.InputJsonValue;
     }
 
     return this.prisma.product.update({

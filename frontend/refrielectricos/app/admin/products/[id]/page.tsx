@@ -31,6 +31,8 @@ export default function EditProductPage() {
     sku: product.sku || undefined,
     subcategory: product.subcategory || undefined,
     specifications: product.specifications || [],
+    originalPrice: product.originalPrice ?? undefined,
+    promoLabel: product.promoLabel || undefined,
   };
 
   return <ProductForm initialData={initialData} isEditing />;
