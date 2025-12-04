@@ -2,8 +2,9 @@
 
 import { useState, useRef } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { getCloudinaryUrl } from '@/lib/cloudinary';
+import ImageLightbox from '@/components/ui/ImageLightbox';
 
 interface ProductGalleryProps {
   images: string[];
@@ -12,6 +13,7 @@ interface ProductGalleryProps {
 
 export default function ProductGallery({ images, productName }: ProductGalleryProps) {
   const [mainImageIndex, setMainImageIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const zoomRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -49,6 +51,10 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
     setMainImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  const openLightbox = () => {
+    setIsLightboxOpen(true);
+  };
+
   if (!images || images.length === 0) {
      return (
         <div className="relative aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center text-gray-400 dark:text-gray-500 border border-gray-200 dark:border-gray-600">
@@ -64,6 +70,7 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
         className="relative aspect-square bg-white dark:bg-gray-700 rounded-lg overflow-hidden cursor-zoom-in border border-gray-200 dark:border-gray-600 group"
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        onClick={openLightbox}
       >
         <Image
           ref={zoomRef}
@@ -74,6 +81,11 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
           sizes="(max-width: 768px) 100vw, 50vw"
           className="object-contain transition-transform duration-200 ease-out"
         />
+
+        {/* Zoom indicator */}
+        <div className="absolute bottom-3 right-3 p-2 rounded-full bg-white/80 dark:bg-gray-800/80 text-gray-600 dark:text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          <ZoomIn size={20} />
+        </div>
         
         {images.length > 1 && (
             <>
@@ -116,6 +128,14 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
           ))}
         </div>
       )}
+
+      {/* Lightbox */}
+      <ImageLightbox
+        images={images}
+        initialIndex={mainImageIndex}
+        isOpen={isLightboxOpen}
+        onClose={() => setIsLightboxOpen(false)}
+      />
     </div>
   );
 }
