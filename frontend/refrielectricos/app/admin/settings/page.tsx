@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Save, Globe, Mail, Bell } from 'lucide-react';
+import { Save, Globe, Mail, Bell, Truck } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
@@ -19,6 +19,9 @@ export default function AdminSettingsPage() {
     currency: 'COP',
     maintenanceMode: false,
     emailNotifications: true,
+    freeShippingThreshold: 100000,
+    freeShippingCity: 'Curumaní',
+    freeShippingEnabled: true,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,6 +91,52 @@ export default function AdminSettingsPage() {
               value={settings.phoneNumber}
               onChange={handleChange}
             />
+          </div>
+        </Card>
+
+        {/* Shipping Settings */}
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+            <Truck size={20} className="text-blue-600" />
+            Configuración de Envíos
+          </h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white">Envío Gratis Habilitado</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Mostrar banner de envío gratis en la tienda</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  name="freeShippingEnabled"
+                  checked={settings.freeShippingEnabled}
+                  onChange={handleChange}
+                  className="sr-only peer" 
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Ciudad con Envío Gratis"
+                name="freeShippingCity"
+                value={settings.freeShippingCity}
+                onChange={handleChange}
+                placeholder="Ej: Curumaní"
+              />
+              <Input
+                label="Monto Mínimo para Envío Gratis"
+                name="freeShippingThreshold"
+                type="number"
+                value={settings.freeShippingThreshold.toString()}
+                onChange={handleChange}
+                placeholder="100000"
+              />
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              El mensaje que se mostrará será: &quot;Envío gratis en {settings.freeShippingCity} desde ${settings.freeShippingThreshold.toLocaleString()}&quot;
+            </p>
           </div>
         </Card>
 

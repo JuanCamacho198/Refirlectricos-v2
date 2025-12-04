@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
-import { ShoppingCart, LogOut, Settings, MapPin, Package, LayoutDashboard, Heart, Menu, X, ChevronDown, ChevronRight, Clock, Star } from 'lucide-react';
+import { ShoppingCart, LogOut, Settings, MapPin, Package, LayoutDashboard, Heart, Menu, X, ChevronDown, ChevronRight, Clock, Star, Truck } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { useAddresses } from '@/hooks/useAddresses';
@@ -42,14 +42,36 @@ export default function Navbar() {
 
   const categories: CategoryStructure[] = metadata?.structure || [];
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
+  // Fetch store settings for free shipping threshold
+  const { data: storeSettings } = useQuery({
+    queryKey: ['store-settings'],
+    queryFn: async () => {
+      try {
+        const { data } = await api.get('/settings');
+        return data;
+      } catch {
+        return { freeShippingThreshold: 100000, freeShippingCity: 'Curumaní' };
+      }
+    },
+    staleTime: 1000 * 60 * 60,
+  });
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+  // Stable scroll logic with hysteresis to prevent flickering
+  const handleScroll = useCallback(() => {
+    const scrollY = window.scrollY;
+    // Use hysteresis: scroll down past 80px to compress, scroll up past 40px to expand
+    setIsScrolled(prev => {
+      if (!prev && scrollY > 80) return true;
+      if (prev && scrollY < 40) return false;
+      return prev;
+    });
   }, []);
+
+  useEffect(() => {
+    // Use passive listener for performance
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -105,8 +127,14 @@ export default function Navbar() {
             </Link>
 
             {/* Search Bar (Expanded) */}
-            <div className="flex-1 max-w-lg mx-auto hidden md:block">
+            <div className="flex-1 max-w-md mx-auto hidden md:block">
               <SearchBox />
+            </div>
+
+            {/* Free Shipping Badge */}
+            <div className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-300 ${isScrolled ? 'opacity-0 w-0 overflow-hidden px-0' : 'opacity-100'}`}>
+              <Truck size={14} />
+              <span>Envío gratis en {storeSettings?.freeShippingCity || 'Curumaní'} desde ${(storeSettings?.freeShippingThreshold || 100000).toLocaleString()}</span>
             </div>
 
             {/* Theme Toggle (Moved to top right for balance) */}
