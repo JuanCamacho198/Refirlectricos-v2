@@ -2,7 +2,6 @@
 
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import Image from 'next/image';
-import Link from 'next/link';
 import { ArrowRight, ShoppingCart, Star } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
@@ -93,13 +92,11 @@ export default function StageHero() {
           >
             {/* Floating Elements behind */}
             <motion.div 
-              transformTemplate={({ z }) => `translateZ(-50px)`}
               className="absolute inset-0 bg-blue-500/20 rounded-full blur-3xl" 
             />
             
             {/* Main Product Image */}
             <motion.div
-              transformTemplate={({ z }) => `translateZ(50px)`}
               className="relative z-10 drop-shadow-2xl"
             >
                {/* Using a placeholder if 9.png is not suitable, but trying it first */}
@@ -116,7 +113,6 @@ export default function StageHero() {
 
             {/* Floating Specs Cards */}
             <motion.div
-              transformTemplate={({ z }) => `translateZ(80px)`}
               className="absolute -right-4 top-10 bg-gray-900/80 backdrop-blur-md border border-gray-700 p-4 rounded-xl shadow-xl"
             >
               <div className="flex items-center gap-3">
@@ -131,7 +127,6 @@ export default function StageHero() {
             </motion.div>
 
             <motion.div
-              transformTemplate={({ z }) => `translateZ(100px)`}
               className="absolute -left-8 bottom-20 bg-gray-900/80 backdrop-blur-md border border-gray-700 p-4 rounded-xl shadow-xl"
             >
               <div className="flex items-center gap-3">

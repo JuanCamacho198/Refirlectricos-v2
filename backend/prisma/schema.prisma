@@ -105,6 +105,17 @@ model Order {
   shippingCountry String?
   shippingNotes   String?
 
+  // Payment information (ePayco integration)
+  paymentMethod          String?   // EPAYCO, COD, NEQUI, etc.
+  paymentStatus          String?   // PENDING, COMPLETED, FAILED, REJECTED, etc.
+  paymentReference       String?   // ePayco x_ref_payco
+  paymentApprovalCode    String?   // Bank approval code
+  paymentResponseCode    String?   // ePayco response code (1=approved, 2=rejected, etc.)
+  paymentResponseMessage String?   // Response description
+  paymentTransactionId   String?   // ePayco transaction ID
+  paymentDate            DateTime? // When payment was processed
+  isTestPayment          Boolean   @default(false) // Flag for test transactions
+
   createdAt       DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 }

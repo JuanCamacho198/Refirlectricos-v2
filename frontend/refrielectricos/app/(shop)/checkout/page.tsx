@@ -7,8 +7,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAddresses } from '@/hooks/useAddresses';
 import { useCreateOrder } from '@/hooks/useOrders';
 import Button from '@/components/ui/Button';
+import EpaycoButton from '@/components/features/checkout/EpaycoButton';
 import AddressForm from '@/components/features/profile/addresses/AddressForm';
-import { MapPin, CreditCard, Loader2, Plus, CheckCircle } from 'lucide-react';
+import { MapPin, CreditCard, Loader2, Plus, CheckCircle, Banknote, Wallet } from 'lucide-react';
 import Image from 'next/image';
 import { formatCurrency } from '@/lib/utils';
 
@@ -25,7 +26,7 @@ export default function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [notes, setNotes] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'CARD' | 'NEQUI'>('COD');
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'EPAYCO'>('EPAYCO');
   const hasInitializedAddress = useRef(false);
 
   useEffect(() => {
@@ -54,21 +55,22 @@ export default function CheckoutPage() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+
+    // If ePayco is selected, the EpaycoButton handles the payment flow
+    if (paymentMethod === 'EPAYCO') {
+      setError('Por favor usa el botón de ePayco para pagar');
+      return;
+    }
     
-    console.log('Iniciando proceso de orden...');
+    console.log('Iniciando proceso de orden (Contra entrega)...');
     setError('');
 
     try {
-      // Simular procesamiento de pago si no es contra entrega
-      if (paymentMethod !== 'COD') {
-        await new Promise(resolve => setTimeout(resolve, 2000)); // 2 segundos de "procesamiento"
-      }
-
       const orderData = {
         userId: user.id,
         addressId: selectedAddressId,
         notes: notes,
-        status: (paymentMethod === 'COD' ? 'PENDING' : 'PAID') as 'PENDING' | 'PAID', // Simulación: Pagado si es electrónico
+        status: 'PENDING' as 'PENDING' | 'PAID',
         items: items.map(item => ({
           productId: item.id,
           quantity: item.quantity
@@ -90,6 +92,18 @@ export default function CheckoutPage() {
       // Scroll al error para que el usuario lo vea
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  // Handler for ePayco errors
+  const handleEpaycoError = (errorMessage: string) => {
+    setError(errorMessage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handler when ePayco order is created
+  const handleEpaycoOrderCreated = (orderId: string) => {
+    console.log('ePayco order created:', orderId);
+    clearCart();
   };
 
   return (
@@ -190,7 +204,7 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          {/* Sección Pago (Simulada) */}
+          {/* Sección Pago */}
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 mb-6">
               <CreditCard className="text-blue-600 dark:text-blue-400" />
@@ -198,6 +212,40 @@ export default function CheckoutPage() {
             </div>
             
             <div className="space-y-3">
+              {/* ePayco - Recommended */}
+              <div 
+                onClick={() => setPaymentMethod('EPAYCO')}
+                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
+                  paymentMethod === 'EPAYCO' 
+                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600' 
+                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
+                }`}
+              >
+                <input
+                  id="payment-epayco"
+                  name="payment-method"
+                  type="radio"
+                  checked={paymentMethod === 'EPAYCO'}
+                  onChange={() => setPaymentMethod('EPAYCO')}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                />
+                <div className="ml-3 flex-1">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="payment-epayco" className="block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
+                      Pagar con ePayco
+                    </label>
+                    <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs rounded-full font-medium">
+                      Recomendado
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Tarjeta de crédito/débito, PSE, Nequi, Daviplata, Efecty y más
+                  </p>
+                </div>
+                <Wallet className="h-6 w-6 text-[#009EE3]" />
+              </div>
+
+              {/* Cash on Delivery */}
               <div 
                 onClick={() => setPaymentMethod('COD')}
                 className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
@@ -214,57 +262,15 @@ export default function CheckoutPage() {
                   onChange={() => setPaymentMethod('COD')}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                 />
-                <label htmlFor="payment-cod" className="ml-3 block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
-                  Pago contra entrega (Efectivo)
-                </label>
-              </div>
-
-              <div 
-                onClick={() => setPaymentMethod('CARD')}
-                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
-                  paymentMethod === 'CARD' 
-                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600' 
-                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
-                }`}
-              >
-                <input
-                  id="payment-card"
-                  name="payment-method"
-                  type="radio"
-                  checked={paymentMethod === 'CARD'}
-                  onChange={() => setPaymentMethod('CARD')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
-                />
-                <div className="ml-3">
-                  <label htmlFor="payment-card" className="block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
-                    Tarjeta de Crédito / Débito
+                <div className="ml-3 flex-1">
+                  <label htmlFor="payment-cod" className="block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
+                    Pago contra entrega
                   </label>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Procesado seguro por Stripe (Simulado)</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Paga en efectivo cuando recibas tu pedido
+                  </p>
                 </div>
-              </div>
-
-              <div 
-                onClick={() => setPaymentMethod('NEQUI')}
-                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
-                  paymentMethod === 'NEQUI' 
-                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-600' 
-                    : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
-                }`}
-              >
-                <input
-                  id="payment-nequi"
-                  name="payment-method"
-                  type="radio"
-                  checked={paymentMethod === 'NEQUI'}
-                  onChange={() => setPaymentMethod('NEQUI')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
-                />
-                <div className="ml-3">
-                  <label htmlFor="payment-nequi" className="block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
-                    Nequi / Daviplata
-                  </label>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Transferencia rápida (Simulado)</p>
-                </div>
+                <Banknote className="h-6 w-6 text-green-600" />
               </div>
             </div>
           </div>
@@ -324,22 +330,41 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <Button
-              type="submit"
-              onClick={handlePlaceOrder}
-              className="w-full mt-6"
-              size="lg"
-              disabled={isCreatingOrder}
-            >
-              {isCreatingOrder ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Procesando...
-                </>
+            {/* Payment Buttons */}
+            <div className="mt-6 space-y-3">
+              {paymentMethod === 'EPAYCO' ? (
+                <EpaycoButton
+                  userId={user?.id || ''}
+                  addressId={selectedAddressId || ''}
+                  items={items.map(item => ({ id: item.id, quantity: item.quantity }))}
+                  notes={notes}
+                  totalPrice={totalPrice}
+                  disabled={!user || !selectedAddressId || items.length === 0}
+                  onError={handleEpaycoError}
+                  onOrderCreated={handleEpaycoOrderCreated}
+                />
               ) : (
-                'Confirmar Pedido'
+                <Button
+                  type="submit"
+                  onClick={handlePlaceOrder}
+                  className="w-full"
+                  size="lg"
+                  disabled={isCreatingOrder || !selectedAddressId}
+                >
+                  {isCreatingOrder ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Procesando...
+                    </>
+                  ) : (
+                    <>
+                      <Banknote className="mr-2 h-4 w-4" />
+                      Confirmar Pedido (Contra Entrega)
+                    </>
+                  )}
+                </Button>
               )}
-            </Button>
+            </div>
             
             <p className="mt-4 text-xs text-center text-gray-500 dark:text-gray-400">
               Al confirmar, aceptas nuestros términos y condiciones.
