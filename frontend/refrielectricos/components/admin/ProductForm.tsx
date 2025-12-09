@@ -15,9 +15,11 @@ import Combobox from '@/components/ui/Combobox';
 import ImageUpload from '@/components/ui/ImageUpload';
 import MultiImageUpload from '@/components/ui/MultiImageUpload';
 import SpecificationsEditor from '@/components/admin/SpecificationsEditor';
+import VariantsEditor from '@/components/admin/VariantsEditor';
 import { productSchema, ProductFormData } from '@/schemas/product';
 import { useToast } from '@/context/ToastContext';
 import { useCreateProduct, useUpdateProduct, useProductMetadata } from '@/hooks/useProducts';
+import { ProductVariant } from '@/types/product';
 
 // Dynamic import for RichTextEditor to avoid SSR issues
 const RichTextEditor = dynamic(() => import('@/components/admin/RichTextEditor'), {
@@ -28,7 +30,7 @@ const RichTextEditor = dynamic(() => import('@/components/admin/RichTextEditor')
 });
 
 interface ProductFormProps {
-  initialData?: ProductFormData & { id: string };
+  initialData?: ProductFormData & { id: string; variants?: ProductVariant[] };
   isEditing?: boolean;
 }
 
@@ -40,6 +42,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [error, setError] = useState('');
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [pendingData, setPendingData] = useState<ProductFormData | null>(null);
+  const [variants, setVariants] = useState<ProductVariant[]>(initialData?.variants || []);
 
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
@@ -385,6 +388,16 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
             />
           )}
         />
+
+        {/* Variants Editor - Solo visible al editar */}
+        {isEditing && initialData?.id && (
+          <VariantsEditor
+            productId={initialData.id}
+            variants={variants}
+            onVariantsChange={setVariants}
+            disabled={isSaving}
+          />
+        )}
 
         <Controller
           name="image_url"
