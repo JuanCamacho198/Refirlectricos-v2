@@ -13,17 +13,24 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://refrielectricos.com'),
   title: {
     template: '%s | Refrielectricos',
     default: 'Refrielectricos | Repuestos de Refrigeración y Electricidad',
   },
   description: "Tienda especializada en repuestos de refrigeración, aire acondicionado y electricidad. Envíos a todo el país.",
   keywords: ['refrigeración', 'electricidad', 'repuestos', 'aire acondicionado', 'herramientas'],
+  icons: {
+    icon: '/globe.svg',
+  },
   openGraph: {
     type: 'website',
     locale: 'es_CO',
     url: 'https://refrielectricos.com',
     siteName: 'Refrielectricos',
+  },
+  alternates: {
+    canonical: '/',
   },
 };
 

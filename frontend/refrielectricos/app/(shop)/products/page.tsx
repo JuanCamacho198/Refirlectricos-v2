@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Metadata } from 'next';
 import { Search } from 'lucide-react';
 import ProductCard from '@/components/features/products/ProductCard';
 import ProductFiltersContainer from '@/components/features/products/ProductFiltersContainer';
@@ -22,6 +23,14 @@ interface CategoryStructure {
   name: string;
   subcategories: string[];
 }
+
+export const metadata: Metadata = {
+  title: 'Catálogo de Productos',
+  description: 'Explora nuestro catálogo completo de repuestos de refrigeración, aire acondicionado, herramientas y materiales eléctricos.',
+  alternates: {
+    canonical: '/products',
+  },
+};
 
 interface MetadataResponse {
   categories: string[];

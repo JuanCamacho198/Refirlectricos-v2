@@ -13,6 +13,7 @@ export default function Home() {
 
   return (
     <div className="space-y-8 pb-12">
+      <h1 className="sr-only">Refrielectricos: Repuestos de Refrigeración y Electricidad</h1>
       {/* Hero Section */}
       <HeroCarousel />
 
