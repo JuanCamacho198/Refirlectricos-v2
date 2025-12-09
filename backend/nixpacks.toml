@@ -1,0 +1,23 @@
+# Railway/Nixpacks configuration for NestJS + Prisma
+# This overrides the default Prisma db push behavior to use migrations instead
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "openssl", "pnpm"]
+
+[phases.install]
+cmds = ["pnpm install"]
+
+[phases.build]
+cmds = [
+  "pnpm exec prisma generate",
+  "pnpm run build"
+]
+
+# Use migrate deploy instead of db push to avoid data loss warnings
+[phases.deploy]
+cmds = ["pnpm exec prisma migrate deploy"]
+
+[start]
+cmd = "pnpm run start:prod"
+
+
