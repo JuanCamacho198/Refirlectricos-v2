@@ -7,16 +7,18 @@ import { useCart } from '@/hooks/useCart';
 import Button from '@/components/ui/Button';
 import { ShoppingCart, CreditCard, Check, ListPlus } from 'lucide-react';
 import AddToWishlistModal from '@/components/features/wishlist/AddToWishlistModal';
+import VariantSelector from '@/components/features/products/VariantSelector';
 import { StarRating } from '@/components/features/reviews/StarRating';
-import { Product } from '@/types/product';
+import { Product, ProductVariant } from '@/types/product';
 import { formatCurrency } from '@/lib/utils';
 import api from '@/lib/api';
 
 interface ProductInfoProps {
   product: Product;
+  selectedVariant?: ProductVariant;
 }
 
-export default function ProductInfo({ product }: ProductInfoProps) {
+export default function ProductInfo({ product, selectedVariant }: ProductInfoProps) {
   const router = useRouter();
   const { addItem } = useCart();
   const [isAdded, setIsAdded] = useState(false);
@@ -34,14 +36,18 @@ export default function ProductInfo({ product }: ProductInfoProps) {
     ? reviews.reduce((acc: number, review: { rating: number }) => acc + review.rating, 0) / reviews.length
     : 0;
 
-  // Discount calculation
-  const hasDiscount = product.originalPrice && product.originalPrice > product.price;
+  // Use variant data if available, otherwise use product data
+  const displayPrice = selectedVariant?.price ?? product.price;
+  const displayStock = selectedVariant?.stock ?? product.stock;
+
+  // Discount calculation (only for base product)
+  const hasDiscount = !selectedVariant && product.originalPrice && product.originalPrice > product.price;
   const discountPercentage = hasDiscount 
     ? Math.round(((product.originalPrice! - product.price) / product.originalPrice!) * 100) 
     : 0;
 
   const handleAddToCart = () => {
-    addItem(product);
+    addItem(product, 1, selectedVariant);
 
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
@@ -67,7 +73,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         <div className="flex items-center gap-4">
           <div className="flex items-baseline gap-3">
             <span className={`text-3xl font-bold ${hasDiscount ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
-              {formatCurrency(Number(product.price))}
+              {formatCurrency(Number(displayPrice))}
             </span>
             {hasDiscount && (
               <span className="text-lg text-gray-400 line-through decoration-gray-400">
@@ -76,9 +82,9 @@ export default function ProductInfo({ product }: ProductInfoProps) {
             )}
           </div>
           
-          {product.stock > 0 ? (
+          {displayStock > 0 ? (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
-              Stock disponible: {product.stock}
+              Stock disponible: {displayStock}
             </span>
           ) : (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
@@ -100,6 +106,16 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           )}
         </div>
       </div>
+
+      {/* Variant Selector */}
+      {product.variants && product.variants.length > 0 && (
+        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+          <VariantSelector
+            variants={product.variants}
+            currentVariantId={selectedVariant?.id}
+          />
+        </div>
+      )}
 
       {/* Short Details */}
       <div className="grid grid-cols-2 gap-4 mb-8 text-sm">
@@ -133,7 +149,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         <div className="flex flex-col sm:flex-row gap-4">
           <Button
             onClick={handleAddToCart}
-            disabled={product.stock <= 0 || isAdded}
+            disabled={displayStock <= 0 || isAdded}
             className={`flex-1 gap-2 ${isAdded ? 'bg-green-600 hover:bg-green-700' : ''}`}
             size="lg"
           >
@@ -143,7 +159,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
 
           <Button
             onClick={handleBuyNow}
-            disabled={product.stock <= 0}
+            disabled={displayStock <= 0}
             variant="secondary"
             className="flex-1 gap-2"
             size="lg"

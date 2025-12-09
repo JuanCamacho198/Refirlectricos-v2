@@ -3,12 +3,14 @@ import { useAuth } from './useAuth';
 import { useCartStore } from '@/store/cartStore';
 import api from '@/lib/api';
 import { useEffect } from 'react';
-import { Product } from '@/types/product';
+import { Product, ProductVariant } from '@/types/product';
 
 interface CartApiItem {
   productId: string;
+  variantId?: string;
   quantity: number;
   product: Product;
+  variant?: ProductVariant;
 }
 
 interface CartApiData {
@@ -43,10 +45,12 @@ export const useCart = () => {
   // Sync DB cart to local store
   useEffect(() => {
     if (isAuthenticated && dbCart) {
-      const mappedItems = dbCart.items.map((item: { productId: string; quantity: number; product: Product }) => ({
+      const mappedItems = dbCart.items.map((item: CartApiItem) => ({
         id: item.productId,
+        variantId: item.variantId,
         quantity: item.quantity,
         product: item.product,
+        variant: item.variant,
       }));
       setItems(mappedItems);
     }
@@ -54,31 +58,35 @@ export const useCart = () => {
 
   // Mutations
   const addToCartMutation = useMutation({
-    mutationFn: async ({ product, quantity }: { product: Product, quantity: number }) => {
-      return api.post('/cart/items', { productId: product.id, quantity });
+    mutationFn: async ({ product, quantity, variant }: { product: Product, quantity: number, variant?: ProductVariant }) => {
+      return api.post('/cart/items', { productId: product.id, variantId: variant?.id, quantity });
     },
-    onMutate: async ({ product, quantity }) => {
+    onMutate: async ({ product, quantity, variant }) => {
       await queryClient.cancelQueries({ queryKey: ['cart'] });
       const previousCart = queryClient.getQueryData<CartApiData>(['cart']);
 
       // Optimistic update
-      localAddItem(product, quantity);
+      localAddItem(product, quantity, variant);
       
       queryClient.setQueryData<CartApiData>(['cart'], (old) => {
         if (!old) return old;
-        // Check if item exists
-        const exists = old.items.find((item) => item.productId === product.id);
+        // Check if item exists (same product + variant combo)
+        const exists = old.items.find(
+          (item) => item.productId === product.id && item.variantId === variant?.id
+        );
         if (exists) {
           return {
             ...old,
             items: old.items.map((item) => 
-              item.productId === product.id ? { ...item, quantity: item.quantity + quantity } : item
+              item.productId === product.id && item.variantId === variant?.id
+                ? { ...item, quantity: item.quantity + quantity }
+                : item
             )
           };
         }
         return {
           ...old,
-          items: [...old.items, { productId: product.id, quantity, product }]
+          items: [...old.items, { productId: product.id, variantId: variant?.id, quantity, product, variant }]
         };
       });
 
@@ -90,8 +98,10 @@ export const useCart = () => {
         // Re-sync zustand from previous cart
         const mappedItems = context.previousCart.items.map((item) => ({
           id: item.productId,
+          variantId: item.variantId,
           quantity: item.quantity,
           product: item.product,
+          variant: item.variant,
         }));
         setItems(mappedItems);
       }
@@ -102,22 +112,27 @@ export const useCart = () => {
   });
 
   const updateQuantityMutation = useMutation({
-    mutationFn: async ({ productId, quantity }: { productId: string, quantity: number }) => {
-      return api.patch(`/cart/items/${productId}`, { quantity });
+    mutationFn: async ({ productId, quantity, variantId }: { productId: string, quantity: number, variantId?: string }) => {
+      const endpoint = variantId 
+        ? `/cart/items/${productId}?variantId=${variantId}` 
+        : `/cart/items/${productId}`;
+      return api.patch(endpoint, { quantity });
     },
-    onMutate: async ({ productId, quantity }) => {
+    onMutate: async ({ productId, quantity, variantId }) => {
       await queryClient.cancelQueries({ queryKey: ['cart'] });
       const previousCart = queryClient.getQueryData<CartApiData>(['cart']);
 
       // Optimistic update
-      localUpdateQuantity(productId, quantity);
+      localUpdateQuantity(productId, quantity, variantId);
 
       queryClient.setQueryData<CartApiData>(['cart'], (old) => {
         if (!old) return old;
         return {
           ...old,
           items: old.items.map((item) => 
-            item.productId === productId ? { ...item, quantity } : item
+            item.productId === productId && item.variantId === variantId
+              ? { ...item, quantity }
+              : item
           )
         };
       });
@@ -130,8 +145,10 @@ export const useCart = () => {
         // Re-sync zustand
         const mappedItems = context.previousCart.items.map((item) => ({
           id: item.productId,
+          variantId: item.variantId,
           quantity: item.quantity,
           product: item.product,
+          variant: item.variant,
         }));
         setItems(mappedItems);
       }
@@ -142,21 +159,26 @@ export const useCart = () => {
   });
 
   const removeFromCartMutation = useMutation({
-    mutationFn: async (productId: string) => {
-      return api.delete(`/cart/items/${productId}`);
+    mutationFn: async ({ productId, variantId }: { productId: string, variantId?: string }) => {
+      const endpoint = variantId 
+        ? `/cart/items/${productId}?variantId=${variantId}` 
+        : `/cart/items/${productId}`;
+      return api.delete(endpoint);
     },
-    onMutate: async (productId) => {
+    onMutate: async ({ productId, variantId }) => {
       await queryClient.cancelQueries({ queryKey: ['cart'] });
       const previousCart = queryClient.getQueryData<CartApiData>(['cart']);
 
       // Optimistic update
-      localRemoveItem(productId);
+      localRemoveItem(productId, variantId);
 
       queryClient.setQueryData<CartApiData>(['cart'], (old) => {
         if (!old) return old;
         return {
           ...old,
-          items: old.items.filter((item) => item.productId !== productId)
+          items: old.items.filter(
+            (item) => !(item.productId === productId && item.variantId === variantId)
+          )
         };
       });
 
@@ -168,8 +190,10 @@ export const useCart = () => {
         // Re-sync zustand
         const mappedItems = context.previousCart.items.map((item) => ({
           id: item.productId,
+          variantId: item.variantId,
           quantity: item.quantity,
           product: item.product,
+          variant: item.variant,
         }));
         setItems(mappedItems);
       }
@@ -199,27 +223,27 @@ export const useCart = () => {
   });
 
   // Wrapper functions
-  const addItem = (product: Product, quantity = 1) => {
+  const addItem = (product: Product, quantity = 1, variant?: ProductVariant) => {
     if (isAuthenticated) {
-      addToCartMutation.mutate({ product, quantity });
+      addToCartMutation.mutate({ product, quantity, variant });
     } else {
-      localAddItem(product, quantity);
+      localAddItem(product, quantity, variant);
     }
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number, variantId?: string) => {
     if (isAuthenticated) {
-      updateQuantityMutation.mutate({ productId, quantity });
+      updateQuantityMutation.mutate({ productId, quantity, variantId });
     } else {
-      localUpdateQuantity(productId, quantity);
+      localUpdateQuantity(productId, quantity, variantId);
     }
   };
 
-  const removeItem = (productId: string) => {
+  const removeItem = (productId: string, variantId?: string) => {
     if (isAuthenticated) {
-      removeFromCartMutation.mutate(productId);
+      removeFromCartMutation.mutate({ productId, variantId });
     } else {
-      localRemoveItem(productId);
+      localRemoveItem(productId, variantId);
     }
   };
 
@@ -231,9 +255,12 @@ export const useCart = () => {
     }
   };
 
-  // Calculate total
+  // Calculate total - use variant price if available
   const totalPrice = items.reduce(
-    (total, item) => total + item.product.price * item.quantity,
+    (total, item) => {
+      const price = item.variant?.price ?? item.product.price;
+      return total + price * item.quantity;
+    },
     0
   );
 

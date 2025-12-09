@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
@@ -42,18 +43,24 @@ export class CartController {
   updateCartItem(
     @Request() req: RequestWithUser,
     @Param('id') id: string,
+    @Query('variantId') variantId: string | undefined,
     @Body() updateCartItemDto: UpdateCartItemDto,
   ) {
     return this.cartService.updateCartItem(
       req.user.userId,
       id,
       updateCartItemDto,
+      variantId,
     );
   }
 
   @Delete('items/:id')
-  removeFromCart(@Request() req: RequestWithUser, @Param('id') id: string) {
-    return this.cartService.removeFromCart(req.user.userId, id);
+  removeFromCart(
+    @Request() req: RequestWithUser,
+    @Param('id') id: string,
+    @Query('variantId') variantId: string | undefined,
+  ) {
+    return this.cartService.removeFromCart(req.user.userId, id, variantId);
   }
 
   @Delete()

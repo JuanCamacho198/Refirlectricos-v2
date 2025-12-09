@@ -58,6 +58,19 @@ export const useProduct = (term: string) => {
   });
 };
 
+// Hook for fetching product by variant slug
+// Returns both the product and the selected variant
+export const useProductByVariantSlug = (variantSlug: string) => {
+  return useQuery({
+    queryKey: ['variant', variantSlug],
+    queryFn: async () => {
+      const { data } = await api.get(`/products/variants/${variantSlug}`);
+      return data;
+    },
+    enabled: !!variantSlug,
+  });
+};
+
 export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
 

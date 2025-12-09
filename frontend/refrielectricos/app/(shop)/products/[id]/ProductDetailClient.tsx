@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import Button from '@/components/ui/Button';
@@ -11,11 +11,12 @@ import ProductInfo from '@/components/features/products/ProductInfo';
 import ProductDescription from '@/components/features/products/ProductDescription';
 import ProductSpecifications from '@/components/features/products/ProductSpecifications';
 import ProductDetailSkeleton from '@/components/features/products/ProductDetailSkeleton';
-import { useProduct } from '@/hooks/useProducts';
+import { useProduct, useProductByVariantSlug } from '@/hooks/useProducts';
 import { useAuthStore } from '@/store/authStore';
 import { historyService } from '@/lib/history';
 import { ProductQuestions } from '@/components/features/questions/ProductQuestions';
 import { Edit } from 'lucide-react';
+import { ProductVariant } from '@/types/product';
 
 const ProductReviews = dynamic(() => import('@/components/features/reviews/ProductReviews').then(mod => mod.ProductReviews), {
   loading: () => <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />,
@@ -29,10 +30,42 @@ export default function ProductDetailClient() {
   const params = useParams();
   const { user } = useAuthStore();
   
-  // Nota: Aunque la carpeta se llama [id], ahora puede recibir un slug
+  // Nota: Aunque la carpeta se llama [id], ahora puede recibir un slug (producto o variante)
   const term = params?.id as string;
 
-  const { data: product, isLoading: loading, isError } = useProduct(term);
+  // First try to fetch as product
+  const { 
+    data: productData, 
+    isLoading: productLoading, 
+    isError: productError 
+  } = useProduct(term);
+
+  // If product not found, try fetching as variant slug
+  const shouldFetchVariant = productError || (!productLoading && !productData);
+  const { 
+    data: variantData, 
+    isLoading: variantLoading, 
+    isError: variantError 
+  } = useProductByVariantSlug(shouldFetchVariant ? term : '');
+
+  // Determine the actual data to display
+  const { product, selectedVariant } = useMemo(() => {
+    // If we have product data directly
+    if (productData) {
+      return { product: productData, selectedVariant: undefined };
+    }
+    // If we fetched by variant slug
+    if (variantData) {
+      return { 
+        product: variantData.product, 
+        selectedVariant: variantData as ProductVariant
+      };
+    }
+    return { product: null, selectedVariant: undefined };
+  }, [productData, variantData]);
+
+  const isLoading = productLoading || (shouldFetchVariant && variantLoading);
+  const isError = productError && variantError;
 
   useEffect(() => {
     if (product && user) {
@@ -44,7 +77,7 @@ export default function ProductDetailClient() {
     }
   }, [product, user]);
 
-  if (loading) {
+  if (isLoading) {
     return <ProductDetailSkeleton />;
   }
 
@@ -59,11 +92,20 @@ export default function ProductDetailClient() {
     );
   }
 
-  const additionalImages = product.images_url?.filter(url => url && url.trim() !== '') || [];
+  // Use variant image if available, otherwise use product images
+  const variantImage = selectedVariant?.image_url;
+  const additionalImages = product.images_url?.filter((url: string) => url && url.trim() !== '') || [];
   // Combinamos la imagen principal con las adicionales, asegurando que la principal vaya primero
-  const images = product.image_url 
-    ? [product.image_url, ...additionalImages.filter(url => url !== product.image_url)]
-    : (additionalImages.length > 0 ? additionalImages : []);
+  const images = variantImage 
+    ? [variantImage, ...additionalImages.filter((url: string) => url !== variantImage)]
+    : product.image_url 
+      ? [product.image_url, ...additionalImages.filter((url: string) => url !== product.image_url)]
+      : (additionalImages.length > 0 ? additionalImages : []);
+
+  // Build product name including variant info
+  const displayName = selectedVariant 
+    ? `${product.name} - ${selectedVariant.name}` 
+    : product.name;
 
   return (
     <>
@@ -71,7 +113,7 @@ export default function ProductDetailClient() {
         <Breadcrumbs 
           items={[
             { label: 'Productos', href: '/products' },
-            { label: product.name }
+            { label: displayName }
           ]}
         />
         
@@ -88,10 +130,10 @@ export default function ProductDetailClient() {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden transition-colors">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 p-4 md:p-8">
           {/* Galería de Imágenes */}
-          <ProductGallery images={images} productName={product.name} />
+          <ProductGallery images={images} productName={displayName} />
 
           {/* Información del Producto */}
-          <ProductInfo product={product} />
+          <ProductInfo product={product} selectedVariant={selectedVariant} />
         </div>
       </div>
 

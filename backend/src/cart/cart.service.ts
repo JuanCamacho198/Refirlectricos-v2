@@ -16,6 +16,7 @@ export class CartService {
         items: {
           include: {
             product: true,
+            variant: true,
           },
           orderBy: {
             createdAt: 'asc',
@@ -28,11 +29,13 @@ export class CartService {
   async addToCart(userId: string, dto: AddToCartDto) {
     const cart = await this.getCart(userId);
 
+    // Find existing item with same product AND variant
     const existingItem = await this.prisma.cartItem.findUnique({
       where: {
-        cartId_productId: {
+        cartId_productId_variantId: {
           cartId: cart.id,
           productId: dto.productId,
+          variantId: dto.variantId ?? null,
         },
       },
     });
@@ -41,14 +44,17 @@ export class CartService {
       return this.prisma.cartItem.update({
         where: { id: existingItem.id },
         data: { quantity: existingItem.quantity + dto.quantity },
+        include: { product: true, variant: true },
       });
     } else {
       return this.prisma.cartItem.create({
         data: {
           cartId: cart.id,
           productId: dto.productId,
+          variantId: dto.variantId,
           quantity: dto.quantity,
         },
+        include: { product: true, variant: true },
       });
     }
   }
@@ -57,14 +63,16 @@ export class CartService {
     userId: string,
     productId: string,
     dto: UpdateCartItemDto,
+    variantId?: string,
   ) {
     const cart = await this.getCart(userId);
-    
+
     const item = await this.prisma.cartItem.findUnique({
       where: {
-        cartId_productId: {
+        cartId_productId_variantId: {
           cartId: cart.id,
           productId: productId,
+          variantId: variantId ?? null,
         },
       },
     });
@@ -76,17 +84,19 @@ export class CartService {
     return this.prisma.cartItem.update({
       where: { id: item.id },
       data: { quantity: dto.quantity },
+      include: { product: true, variant: true },
     });
   }
 
-  async removeFromCart(userId: string, productId: string) {
+  async removeFromCart(userId: string, productId: string, variantId?: string) {
     const cart = await this.getCart(userId);
 
     const item = await this.prisma.cartItem.findUnique({
       where: {
-        cartId_productId: {
+        cartId_productId_variantId: {
           cartId: cart.id,
           productId: productId,
+          variantId: variantId ?? null,
         },
       },
     });

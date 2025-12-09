@@ -26,7 +26,7 @@ export default function EditProductPage() {
   const initialData = {
     ...product,
     description: product.description || undefined,
-    image_url: product.image_url || undefined,
+    image_url: product.image_url || '', // Empty string to trigger validation
     brand: product.brand || undefined,
     sku: product.sku || undefined,
     subcategory: product.subcategory || undefined,

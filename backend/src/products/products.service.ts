@@ -131,6 +131,12 @@ export class ProductsService {
       where: {
         OR: [{ id: term }, { slug: term }],
       },
+      include: {
+        variants: {
+          where: { isActive: true },
+          orderBy: [{ isDefault: 'desc' }, { price: 'asc' }],
+        },
+      },
     });
 
     if (!product) {
@@ -200,6 +206,9 @@ export class ProductsService {
         tx.question.deleteMany({ where: { productId: id } }),
         tx.productView.deleteMany({ where: { productId: id } }),
       ]);
+
+      // Delete variants (attributes are stored as JSON, no separate table)
+      await tx.productVariant.deleteMany({ where: { productId: id } });
 
       await tx.product.delete({ where: { id } });
 

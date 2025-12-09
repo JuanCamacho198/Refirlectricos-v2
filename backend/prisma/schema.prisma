@@ -64,19 +64,23 @@ model Product {
   name          String
   slug          String         @unique // URL amigable
   description   String?
-  price         Float
-  originalPrice Float?       // Nuevo: Precio original (antes del descuento)
-  promoLabel    String?      // Nuevo: Etiqueta de promoción (ej: "Oferta", "Black Friday")
-  stock         Int            @default(0)
+  price         Float          // Default price (used when no variants, or as base price)
+  originalPrice Float?         // Nuevo: Precio original (antes del descuento)
+  promoLabel    String?        // Nuevo: Etiqueta de promoción (ej: "Oferta", "Black Friday")
+  stock         Int            @default(0) // Aggregated stock or used when no variants
   image_url     String?
   category      String         @default("General") // Nuevo: Categoría principal
   subcategory   String?        // Nuevo: Subcategoría
   brand         String?        // Nuevo: Marca del producto
-  sku           String?        @unique // Nuevo: Código de inventario único
+  sku           String?        @unique // Nuevo: Código de inventario único (base SKU)
   tags          String[]       // Nuevo: Etiquetas para búsqueda flexible
   images_url    String[]       // Nuevo: Galería de imágenes
   specifications Json?         // Nuevo: Especificaciones del producto [{label, value}]
   isActive      Boolean        @default(true) // Nuevo: Control de visibilidad
+  hasVariants   Boolean        @default(false) // Flag to indicate if product uses variants
+  
+  // Relations
+  variants      ProductVariant[]
   orderItems    OrderItem[]
   wishlistItems WishlistItem[]
   cartItems     CartItem[]
@@ -85,6 +89,57 @@ model Product {
   productViews  ProductView[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+}
+
+// Product Variants - each variant has its own price, stock, SKU, and attributes
+model ProductVariant {
+  id            String   @id @default(cuid())
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId     String
+  
+  name          String   // e.g., "1/4 HP", "Rojo - Grande"
+  slug          String   @unique // URL-friendly: "compresor-embraco-1-4hp"
+  sku           String?  @unique // Unique SKU per variant
+  price         Float    // Variant-specific price
+  originalPrice Float?   // Original price for this variant
+  stock         Int      @default(0)
+  image_url     String?  // Main image for this variant
+  images_url    String[] // Gallery for this variant
+  
+  // Flexible attributes stored as JSON: { "potencia": "1/4 HP", "voltaje": "110V" }
+  attributes    Json?
+  
+  isDefault     Boolean  @default(false) // Default variant shown on product page
+  isActive      Boolean  @default(true)
+  position      Int      @default(0) // Sort order
+  
+  // Relations
+  orderItems    OrderItem[]
+  cartItems     CartItem[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([productId])
+}
+
+// Defines what options a product can have (e.g., "Potencia", "Color", "Tamaño")
+model ProductOption {
+  id        String              @id @default(cuid())
+  name      String              @unique // e.g., "Potencia", "Color", "Tamaño"
+  values    ProductOptionValue[]
+  createdAt DateTime            @default(now())
+}
+
+// Predefined values for each option (e.g., "1/4 HP", "1/8 HP" for Potencia)
+model ProductOptionValue {
+  id        String        @id @default(cuid())
+  option    ProductOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  optionId  String
+  value     String        // e.g., "1/4 HP", "Rojo", "Grande"
+  position  Int           @default(0)
+  
+  @@unique([optionId, value])
 }
 
 model Order {
@@ -126,8 +181,15 @@ model OrderItem {
   orderId   String
   product   Product @relation(fields: [productId], references: [id])
   productId String
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+  variantId String?
   quantity  Int     @default(1)
   price     Float
+  
+  // Snapshot of variant attributes at time of purchase
+  variantName   String?
+  variantSku    String?
+  variantAttributes Json?
 }
 
 model Wishlist {
@@ -185,11 +247,13 @@ model CartItem {
   cartId    String
   product   Product  @relation(fields: [productId], references: [id])
   productId  String
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+  variantId String?
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([cartId, productId])
+  @@unique([cartId, productId, variantId])
 }
 
 
