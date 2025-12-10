@@ -20,10 +20,23 @@ export class VariantsService {
     variantName: string,
     excludeId?: string,
   ): Promise<string> {
-    const baseSlug = slugify(`${productSlug}-${variantName}`, {
+    // Generate variant name slug
+    const variantSlug = slugify(variantName, {
       lower: true,
       strict: true,
     });
+
+    // If the variant slug is the same as the product slug (e.g., same name),
+    // use a numeric suffix instead to avoid duplication
+    let baseSlug: string;
+    if (variantSlug === productSlug || !variantSlug) {
+      baseSlug = `${productSlug}-variante`;
+    } else if (variantSlug.startsWith(productSlug)) {
+      // If variant already starts with product slug, don't duplicate
+      baseSlug = variantSlug;
+    } else {
+      baseSlug = `${productSlug}-${variantSlug}`;
+    }
 
     let slug = baseSlug;
     let counter = 1;

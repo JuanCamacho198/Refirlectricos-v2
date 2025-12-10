@@ -393,6 +393,13 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         {isEditing && initialData?.id && (
           <VariantsEditor
             productId={initialData.id}
+            productData={{
+              name: initialData.name,
+              sku: initialData.sku,
+              price: initialData.price,
+              originalPrice: initialData.originalPrice,
+              stock: initialData.stock,
+            }}
             variants={variants}
             onVariantsChange={setVariants}
             disabled={isSaving}

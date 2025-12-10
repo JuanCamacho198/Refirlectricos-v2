@@ -29,8 +29,17 @@ interface VariantFormData {
   isActive: boolean;
 }
 
+interface ProductBaseData {
+  name: string;
+  sku?: string;
+  price: number;
+  originalPrice?: number;
+  stock?: number;
+}
+
 interface VariantsEditorProps {
   productId: string;
+  productData: ProductBaseData;
   variants: ProductVariant[];
   onVariantsChange: (variants: ProductVariant[]) => void;
   disabled?: boolean;
@@ -46,6 +55,7 @@ const COMMON_ATTRIBUTES = [
 
 export default function VariantsEditor({
   productId,
+  productData,
   variants: initialVariants,
   onVariantsChange,
   disabled = false,
@@ -81,13 +91,23 @@ export default function VariantsEditor({
 
   const isSaving = createVariant.isPending || updateVariant.isPending || deleteVariant.isPending;
 
+  // Generate a unique SKU suffix for new variants
+  const generateSkuSuffix = () => {
+    const count = variants.length + 1;
+    return `-V${count}`;
+  };
+
   const resetForm = () => {
+    // Auto-complete with product base data
+    const baseSku = productData.sku || '';
     setFormData({
-      name: '',
-      price: 0,
-      stock: 0,
+      name: '', // Optional - will use product name if empty
+      sku: baseSku ? `${baseSku}${generateSkuSuffix()}` : '',
+      price: productData.price || 0,
+      originalPrice: productData.originalPrice || undefined,
+      stock: productData.stock || 0,
       attributes: {},
-      isDefault: variants.length === 0, // First variant is default
+      isDefault: false, // Siempre desactivado al inicio
       isActive: true,
     });
     setEditingIndex(null);
@@ -118,8 +138,21 @@ export default function VariantsEditor({
 
   const handleSave = async () => {
     try {
+      // Si no hay nombre, usar el nombre del producto + atributos
+      let variantName = formData.name.trim();
+      if (!variantName) {
+        const attrValues = Object.values(formData.attributes).filter(Boolean);
+        if (attrValues.length > 0) {
+          variantName = `${productData.name} - ${attrValues.join(' / ')}`;
+        } else {
+          // Use a numbered variant name to differentiate from product
+          const variantNumber = variants.length + 1;
+          variantName = `${productData.name} - Variante ${variantNumber}`;
+        }
+      }
+
       const variantData = {
-        name: formData.name,
+        name: variantName,
         sku: formData.sku || undefined,
         price: formData.price,
         originalPrice: formData.originalPrice || undefined,
@@ -352,20 +385,34 @@ export default function VariantsEditor({
         title={editingIndex !== null ? 'Editar Variante' : 'Nueva Variante'}
       >
         <div className="space-y-4 max-h-[70vh] overflow-y-auto">
-          <Input
-            label="Nombre de la Variante"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Ej: 1/4 HP - 110V"
-            required
-          />
+          {/* Nombre - Opcional */}
+          <div>
+            <label className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 mb-2">
+              Nombre de la Variante{' '}
+              <span className="text-gray-400 font-normal">(opcional)</span>
+            </label>
+            <Input
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder={`Ej: ${productData.name} - 1/4 HP 110V`}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Si lo dejas vacío, se generará automáticamente con el nombre del producto y los atributos.
+            </p>
+          </div>
 
-          <Input
-            label="SKU"
-            value={formData.sku || ''}
-            onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-            placeholder="Ej: COMP-1/4-110"
-          />
+          {/* SKU con advertencia si está duplicado */}
+          <div>
+            <Input
+              label="SKU"
+              value={formData.sku || ''}
+              onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+              placeholder={productData.sku ? `${productData.sku}-V1` : 'Ej: COMP-1/4-110'}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Código único para esta variante. Se sugiere agregar un sufijo al SKU del producto.
+            </p>
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <PriceInput
@@ -525,7 +572,7 @@ export default function VariantsEditor({
             <Button
               type="button"
               onClick={handleSave}
-              disabled={!formData.name || formData.price <= 0 || isSaving}
+              disabled={formData.price <= 0 || isSaving}
             >
               {isSaving ? (
                 <>
