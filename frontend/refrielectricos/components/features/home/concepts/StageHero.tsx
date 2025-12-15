@@ -99,11 +99,11 @@ export default function StageHero() {
             <motion.div
               className="relative z-10 drop-shadow-2xl"
             >
-               {/* Using a placeholder if 9.png is not suitable, but trying it first */}
+               {/* Using the site logo asset */}
                <div className="relative w-full h-full flex items-center justify-center">
                   <Image 
-                    src="/images/9.png" 
-                    alt="Compresor Inverter" 
+                    src="/images/RefriLogo.png" 
+                    alt="Refrielectricos Logo" 
                     width={500} 
                     height={500}
                     className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"

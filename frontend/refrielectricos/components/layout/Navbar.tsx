@@ -117,7 +117,7 @@ export default function Navbar() {
               className="shrink-0 flex items-center gap-2 hover:scale-105 transition-transform duration-200"
             >
               <Image 
-                src="/icons/logoRefri.svg" 
+                src="/images/RefriLogo.png" 
                 alt="Refrielectricos Logo" 
                 width={32} 
                 height={32} 

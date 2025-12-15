@@ -15,7 +15,7 @@ export default function Footer() {
             <Link href="/" className="inline-block">
                <div className="relative h-16 w-48">
                   <Image
-                    src="/images/9.png"
+                    src="/images/RefriLogo.png"
                     alt="Refrielectricos Logo"
                     fill
                     className="object-contain object-left"
