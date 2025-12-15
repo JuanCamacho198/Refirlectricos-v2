@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Save, ArrowLeft, AlertTriangle, Trash2 } from 'lucide-react';
+import { Loader2, Save, ArrowLeft, AlertTriangle, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -12,10 +12,11 @@ import Input from '@/components/ui/Input';
 import PriceInput from '@/components/ui/PriceInput';
 import Modal from '@/components/ui/Modal';
 import Combobox from '@/components/ui/Combobox';
-import ImageUpload from '@/components/ui/ImageUpload';
+import ImageUploadWithCrop from '@/components/ui/ImageUploadWithCrop';
 import MultiImageUpload from '@/components/ui/MultiImageUpload';
 import SpecificationsEditor from '@/components/admin/SpecificationsEditor';
 import VariantsEditor from '@/components/admin/VariantsEditor';
+import ProductCardPreview from '@/components/admin/ProductCardPreview';
 import { productSchema, ProductFormData } from '@/schemas/product';
 import { useToast } from '@/context/ToastContext';
 import { useCreateProduct, useUpdateProduct, useProductMetadata } from '@/hooks/useProducts';
@@ -43,6 +44,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [pendingData, setPendingData] = useState<ProductFormData | null>(null);
   const [variants, setVariants] = useState<ProductVariant[]>(initialData?.variants || []);
+  const [showPreview, setShowPreview] = useState(true);
 
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
@@ -175,7 +177,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="mb-6 flex justify-between items-end">
         <div>
           <Link href="/admin/products" className="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1 mb-2">
@@ -186,15 +188,29 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
             {isEditing ? 'Editar Producto' : 'Nuevo Producto'}
           </h1>
         </div>
-        {!isEditing && (
-          <Button variant="ghost" size="sm" onClick={clearDraft} className="text-red-500 hover:text-red-600 hover:bg-red-50">
-            <Trash2 size={16} className="mr-1" />
-            Limpiar borrador
+        <div className="flex items-center gap-2">
+          <Button 
+            type="button"
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setShowPreview(!showPreview)}
+            className="text-gray-600 dark:text-gray-400"
+          >
+            {showPreview ? <EyeOff size={16} className="mr-1" /> : <Eye size={16} className="mr-1" />}
+            {showPreview ? 'Ocultar preview' : 'Ver preview'}
           </Button>
-        )}
+          {!isEditing && (
+            <Button variant="ghost" size="sm" onClick={clearDraft} className="text-red-500 hover:text-red-600 hover:bg-red-50">
+              <Trash2 size={16} className="mr-1" />
+              Limpiar borrador
+            </Button>
+          )}
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className={`grid gap-6 ${showPreview ? 'lg:grid-cols-[1fr,320px]' : 'grid-cols-1 max-w-2xl mx-auto'}`}>
+        {/* Main Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         {error && (
           <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-md text-sm">
             {error}
@@ -414,10 +430,11 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Imagen Principal <span className="text-red-500">*</span>
               </label>
-              <ImageUpload
+              <ImageUploadWithCrop
                 value={field.value || ''}
                 onChange={field.onChange}
                 disabled={isSaving}
+                showCropButton={true}
               />
               {errors.image_url && (
                 <p className="text-sm text-red-500">{errors.image_url.message}</p>
@@ -474,6 +491,40 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
           </Button>
         </div>
       </form>
+
+      {/* Live Preview Panel */}
+      {showPreview && (
+        <div className="hidden lg:block">
+          <div className="sticky top-24">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                <Eye size={16} />
+                Vista previa de la tarjeta
+              </h3>
+              <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 flex items-center justify-center min-h-[380px]">
+                <ProductCardPreview 
+                  product={{
+                    name: formValues.name || '',
+                    price: Number(formValues.price) || 0,
+                    originalPrice: formValues.originalPrice ? Number(formValues.originalPrice) : null,
+                    promoLabel: formValues.promoLabel || null,
+                    stock: Number(formValues.stock) || 0,
+                    image_url: formValues.image_url || null,
+                    brand: formValues.brand || null,
+                    category: formValues.category || null,
+                    subcategory: formValues.subcategory || null,
+                  }}
+                  scale={0.85}
+                />
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
+                Así se verá en la tienda
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
 
       <Modal
         isOpen={isConfirmModalOpen}
