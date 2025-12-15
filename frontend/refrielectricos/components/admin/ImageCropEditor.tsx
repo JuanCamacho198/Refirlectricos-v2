@@ -75,6 +75,7 @@ export default function ImageCropEditor({
             maxZoom={3}
             showGrid={true}
             objectFit="contain"
+            restrictPosition={false}
             style={{
               containerStyle: {
                 backgroundColor: '#ffffff',
