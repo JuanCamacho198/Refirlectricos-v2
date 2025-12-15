@@ -174,8 +174,7 @@ export default function ImageCropEditor({
 
 /**
  * Utility to create a cropped image from crop data
- * This can be used to generate a new cropped image file
- * Fills background with white for areas outside the image (when zoomed out)
+ * Properly handles zoomed out images by filling empty areas with white
  */
 export async function getCroppedImg(
   imageSrc: string,
@@ -187,24 +186,42 @@ export async function getCroppedImg(
 
   if (!ctx) return null;
 
+  // Set canvas to the crop size
   canvas.width = pixelCrop.width;
   canvas.height = pixelCrop.height;
 
-  // Fill with white background first (for zoomed out images)
+  // Fill entire canvas with white background first
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  ctx.drawImage(
-    image,
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
-    0,
-    0,
-    pixelCrop.width,
-    pixelCrop.height
-  );
+  // Calculate the source and destination rectangles
+  // Source: what part of the original image to use
+  // Destination: where to draw it on the canvas
+
+  // Source coordinates (clamped to image bounds)
+  const sx = Math.max(0, pixelCrop.x);
+  const sy = Math.max(0, pixelCrop.y);
+  const sWidth = Math.min(image.width - sx, pixelCrop.width - Math.max(0, -pixelCrop.x));
+  const sHeight = Math.min(image.height - sy, pixelCrop.height - Math.max(0, -pixelCrop.y));
+
+  // Destination coordinates (offset if crop starts before image)
+  const dx = Math.max(0, -pixelCrop.x);
+  const dy = Math.max(0, -pixelCrop.y);
+
+  // Only draw if there's something to draw
+  if (sWidth > 0 && sHeight > 0) {
+    ctx.drawImage(
+      image,
+      sx,
+      sy,
+      sWidth,
+      sHeight,
+      dx,
+      dy,
+      sWidth,
+      sHeight
+    );
+  }
 
   return new Promise((resolve) => {
     canvas.toBlob((blob) => {
