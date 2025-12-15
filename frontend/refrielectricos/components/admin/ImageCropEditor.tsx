@@ -28,7 +28,7 @@ export default function ImageCropEditor({
   }, []);
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 3));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 1));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.3));
   const handleReset = () => {
     setCrop({ x: 0, y: 0 });
     setZoom(1);
@@ -61,8 +61,8 @@ export default function ImageCropEditor({
           </button>
         </div>
 
-        {/* Crop Area */}
-        <div className="relative h-[400px] bg-gray-900">
+        {/* Crop Area - White background to match ProductCard */}
+        <div className="relative h-[400px] bg-white">
           <Cropper
             image={imageUrl}
             crop={crop}
@@ -71,10 +71,16 @@ export default function ImageCropEditor({
             onCropChange={setCrop}
             onCropComplete={onCropComplete}
             onZoomChange={setZoom}
+            minZoom={0.3}
+            maxZoom={3}
             showGrid={true}
+            objectFit="contain"
             style={{
               containerStyle: {
-                backgroundColor: '#1a1a1a',
+                backgroundColor: '#ffffff',
+              },
+              cropAreaStyle: {
+                border: '2px solid #3b82f6',
               },
             }}
           />
@@ -94,7 +100,7 @@ export default function ImageCropEditor({
             <div className="flex-1">
               <input
                 type="range"
-                min={1}
+                min={0.3}
                 max={3}
                 step={0.01}
                 value={zoom}
@@ -168,6 +174,7 @@ export default function ImageCropEditor({
 /**
  * Utility to create a cropped image from crop data
  * This can be used to generate a new cropped image file
+ * Fills background with white for areas outside the image (when zoomed out)
  */
 export async function getCroppedImg(
   imageSrc: string,
@@ -181,6 +188,10 @@ export async function getCroppedImg(
 
   canvas.width = pixelCrop.width;
   canvas.height = pixelCrop.height;
+
+  // Fill with white background first (for zoomed out images)
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.drawImage(
     image,
