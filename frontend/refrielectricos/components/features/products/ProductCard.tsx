@@ -1,6 +1,6 @@
 'use client';
 
-import { Heart, ShoppingCart, Check, Eye } from 'lucide-react';
+import { Heart, ShoppingCart, Check, Eye, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useCart } from '@/hooks/useCart';
 import { useWishlist } from '@/hooks/useWishlist';
+import { useAuthStore } from '@/store/authStore';
 import { Product } from '@/types/product';
 import { formatCurrency } from '@/lib/utils';
 import { getCloudinaryUrl } from '@/lib/cloudinary';
@@ -24,7 +25,9 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const { addItem } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { user } = useAuthStore();
   
+  const isAdmin = user?.role === 'ADMIN';
   const isFavorite = isInWishlist(product.id);
   const productLink = `/products/${product.slug || product.id}`;
   const isLowStock = product.stock > 0 && product.stock < 5;
@@ -124,6 +127,17 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             
             {/* Action Buttons Overlay */}
             <div className="absolute top-3 right-3 flex flex-col gap-2 z-10 transition-all duration-300 translate-x-0 opacity-100 lg:translate-x-12 lg:opacity-0 lg:group-hover:translate-x-0 lg:group-hover:opacity-100">
+              {/* Admin Edit Button */}
+              {isAdmin && (
+                <Link
+                  href={`/admin/products/${product.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="p-2 rounded-full bg-amber-500 shadow-md hover:bg-amber-600 text-white transition-colors"
+                  title="Editar producto"
+                >
+                  <Pencil size={18} />
+                </Link>
+              )}
               <button
                 onClick={handleToggleFavorite}
                 className="p-2 rounded-full bg-white dark:bg-gray-800 shadow-md hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 dark:text-gray-300 hover:text-red-500 transition-colors"

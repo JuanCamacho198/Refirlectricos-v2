@@ -123,7 +123,7 @@ export default function Navbar() {
                 height={32} 
                 className={`transition-all duration-300 ${isScrolled ? 'w-6 h-6 md:w-8 md:h-8' : 'w-8 h-8 md:w-10 md:h-10'}`}
               />
-              <span className={`font-bold bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent block transition-all duration-300 ${
+              <span className={`font-extrabold tracking-tight leading-none whitespace-nowrap bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent block transition-all duration-300 ${
                 isScrolled ? 'text-lg md:text-xl' : 'text-xl md:text-2xl'
               }`}>
                 Refrielectricos
