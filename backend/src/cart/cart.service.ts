@@ -30,13 +30,13 @@ export class CartService {
     const cart = await this.getCart(userId);
 
     // Find existing item with same product AND variant
-    const existingItem = await this.prisma.cartItem.findUnique({
+    // Note: Prisma unique index with nullable field requires findFirst instead of findUnique
+    // when variantId is null (SQL NULL != NULL)
+    const existingItem = await this.prisma.cartItem.findFirst({
       where: {
-        cartId_productId_variantId: {
-          cartId: cart.id,
-          productId: dto.productId,
-          variantId: dto.variantId ?? null,
-        },
+        cartId: cart.id,
+        productId: dto.productId,
+        variantId: dto.variantId ?? null,
       },
     });
 
@@ -51,7 +51,7 @@ export class CartService {
         data: {
           cartId: cart.id,
           productId: dto.productId,
-          variantId: dto.variantId,
+          variantId: dto.variantId ?? null,
           quantity: dto.quantity,
         },
         include: { product: true, variant: true },
@@ -67,13 +67,12 @@ export class CartService {
   ) {
     const cart = await this.getCart(userId);
 
-    const item = await this.prisma.cartItem.findUnique({
+    // Use findFirst instead of findUnique for nullable variantId
+    const item = await this.prisma.cartItem.findFirst({
       where: {
-        cartId_productId_variantId: {
-          cartId: cart.id,
-          productId: productId,
-          variantId: variantId ?? null,
-        },
+        cartId: cart.id,
+        productId: productId,
+        variantId: variantId ?? null,
       },
     });
 
@@ -91,13 +90,12 @@ export class CartService {
   async removeFromCart(userId: string, productId: string, variantId?: string) {
     const cart = await this.getCart(userId);
 
-    const item = await this.prisma.cartItem.findUnique({
+    // Use findFirst instead of findUnique for nullable variantId
+    const item = await this.prisma.cartItem.findFirst({
       where: {
-        cartId_productId_variantId: {
-          cartId: cart.id,
-          productId: productId,
-          variantId: variantId ?? null,
-        },
+        cartId: cart.id,
+        productId: productId,
+        variantId: variantId ?? null,
       },
     });
 

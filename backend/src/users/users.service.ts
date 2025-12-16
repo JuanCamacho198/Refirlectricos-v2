@@ -55,9 +55,50 @@ export class UsersService {
     });
   }
 
-  remove(id: string) {
-    return this.prisma.user.delete({
-      where: { id },
+  async remove(id: string) {
+    // Delete all related records first to avoid foreign key constraint errors
+    // Use a transaction to ensure atomicity
+    return this.prisma.$transaction(async (tx) => {
+      // Delete notifications
+      await tx.notification.deleteMany({ where: { userId: id } });
+
+      // Delete product views (history)
+      await tx.productView.deleteMany({ where: { userId: id } });
+
+      // Delete questions
+      await tx.question.deleteMany({ where: { userId: id } });
+
+      // Delete reviews
+      await tx.review.deleteMany({ where: { userId: id } });
+
+      // Delete cart items first, then cart
+      const cart = await tx.cart.findUnique({ where: { userId: id } });
+      if (cart) {
+        await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+        await tx.cart.delete({ where: { userId: id } });
+      }
+
+      // Delete wishlist items first, then wishlists
+      const wishlists = await tx.wishlist.findMany({ where: { userId: id } });
+      for (const wishlist of wishlists) {
+        await tx.wishlistItem.deleteMany({
+          where: { wishlistId: wishlist.id },
+        });
+      }
+      await tx.wishlist.deleteMany({ where: { userId: id } });
+
+      // Delete addresses
+      await tx.address.deleteMany({ where: { userId: id } });
+
+      // Delete order items first, then orders
+      const orders = await tx.order.findMany({ where: { userId: id } });
+      for (const order of orders) {
+        await tx.orderItem.deleteMany({ where: { orderId: order.id } });
+      }
+      await tx.order.deleteMany({ where: { userId: id } });
+
+      // Finally delete the user
+      return tx.user.delete({ where: { id } });
     });
   }
 
