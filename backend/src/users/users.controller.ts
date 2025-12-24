@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '../../generated/prisma/enums';
+import { AuthService } from '../auth/auth.service';
 
 interface RequestWithUser {
   user: {
@@ -30,7 +31,10 @@ interface RequestWithUser {
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
@@ -62,7 +66,7 @@ export class UsersController {
   @Patch(':id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  update(
+  async update(
     @Request() req: RequestWithUser,
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -79,14 +83,24 @@ export class UsersController {
       throw new ForbiddenException('No puedes editar este usuario');
     }
 
-    return this.usersService.update(id, updateUserDto);
+    const passwordChanged = !!updateUserDto.password;
+    const updatedUser = await this.usersService.update(id, updateUserDto);
+
+    // Revoke all refresh tokens if password was changed
+    if (passwordChanged) {
+      await this.authService.revokeRefreshTokens(id);
+    }
+
+    return updatedUser;
   }
 
   @Delete(':id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
+    // Revoke refresh tokens before deletion
+    await this.authService.revokeRefreshTokens(id);
     return this.usersService.remove(id);
   }
 }

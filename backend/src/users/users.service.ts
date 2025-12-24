@@ -1,23 +1,13 @@
-import {
-  Injectable,
-  ConflictException,
-  Inject,
-  forwardRef,
-} from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma } from '../../generated/prisma/client';
-import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly prisma: PrismaService,
-    @Inject(forwardRef(() => AuthService))
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -65,17 +55,15 @@ export class UsersService {
       data: updateUserDto,
     });
 
-    // Revoke all refresh tokens if password was changed or role was downgraded
-    if (passwordChanged) {
-      await this.authService.revokeRefreshTokens(id);
-    }
+    // TODO: Revoke all refresh tokens if password was changed or role was downgraded
+    // This should be handled by the controller calling AuthService.revokeRefreshTokens
 
     return updatedUser;
   }
 
   async remove(id: string) {
-    // Revoke refresh tokens before deletion
-    await this.authService.revokeRefreshTokens(id);
+    // TODO: Revoke refresh tokens before deletion
+    // This should be handled by the controller calling AuthService.revokeRefreshTokens
 
     // Delete all related records first to avoid foreign key constraint errors
     // Use a transaction to ensure atomicity
