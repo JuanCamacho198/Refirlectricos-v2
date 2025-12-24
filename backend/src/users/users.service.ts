@@ -1,13 +1,23 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma } from '../../generated/prisma/client';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -46,16 +56,27 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    if (updateUserDto.password) {
+    const passwordChanged = !!updateUserDto.password;
+    if (passwordChanged) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
-    return this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: { id },
       data: updateUserDto,
     });
+
+    // Revoke all refresh tokens if password was changed or role was downgraded
+    if (passwordChanged) {
+      await this.authService.revokeRefreshTokens(id);
+    }
+
+    return updatedUser;
   }
 
   async remove(id: string) {
+    // Revoke refresh tokens before deletion
+    await this.authService.revokeRefreshTokens(id);
+
     // Delete all related records first to avoid foreign key constraint errors
     // Use a transaction to ensure atomicity
     return this.prisma.$transaction(async (tx) => {

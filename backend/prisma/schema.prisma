@@ -43,6 +43,7 @@ model User {
   questions     Question[]
   productViews  ProductView[]
   notifications Notification[]
+  refreshTokens RefreshToken[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -315,5 +316,17 @@ model StoreSettings {
   freeShippingEmoji       String   @default("🚚")
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 

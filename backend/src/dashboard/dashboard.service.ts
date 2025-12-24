@@ -6,23 +6,31 @@ export class DashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getStats() {
-    const [totalUsers, totalProducts, totalOrders, paidOrders, lowStockProducts] =
-      await Promise.all([
-        this.prisma.user.count(),
-        this.prisma.product.count(),
-        this.prisma.order.count(),
-        this.prisma.order.findMany({
-          where: { 
-            status: { in: ['PAID', 'PENDING'] } // Include PENDING for demo purposes
-          },
-          select: { total: true, createdAt: true },
-        }),
-        this.prisma.product.count({
-          where: { stock: { lte: 5 } },
-        }),
-      ]);
+    const [
+      totalUsers,
+      totalProducts,
+      totalOrders,
+      paidOrders,
+      lowStockProducts,
+    ] = await Promise.all([
+      this.prisma.user.count(),
+      this.prisma.product.count(),
+      this.prisma.order.count(),
+      this.prisma.order.findMany({
+        where: {
+          status: { in: ['PAID', 'PENDING'] }, // Include PENDING for demo purposes
+        },
+        select: { total: true, createdAt: true },
+      }),
+      this.prisma.product.count({
+        where: { stock: { lte: 5 } },
+      }),
+    ]);
 
-    const totalRevenue = paidOrders.reduce((acc, order) => acc + order.total, 0);
+    const totalRevenue = paidOrders.reduce(
+      (acc, order) => acc + order.total,
+      0,
+    );
 
     // 1. Revenue History (Last 6 months)
     const revenueByMonth = this.getRevenueByMonth(paidOrders);
@@ -69,7 +77,13 @@ export class DashboardService {
       topSellingItems.map(async (item) => {
         const product = await this.prisma.product.findUnique({
           where: { id: item.productId },
-          select: { id: true, name: true, price: true, image_url: true, category: true },
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            image_url: true,
+            category: true,
+          },
         });
         return {
           ...product,
@@ -106,11 +120,23 @@ export class DashboardService {
       'Nov',
       'Dic',
     ];
+
+    interface MonthData {
+      month: string;
+      year: number;
+      revenue: number;
+      rawDate: Date;
+    }
+
     const currentDate = new Date();
-    const last6Months = [];
+    const last6Months: MonthData[] = [];
 
     for (let i = 5; i >= 0; i--) {
-      const d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      const d = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() - i,
+        1,
+      );
       last6Months.push({
         month: months[d.getMonth()],
         year: d.getFullYear(),
@@ -131,6 +157,9 @@ export class DashboardService {
       }
     });
 
-    return last6Months.map(({ month, revenue }) => ({ name: month, total: revenue }));
+    return last6Months.map(({ month, revenue }) => ({
+      name: month,
+      total: revenue,
+    }));
   }
 }

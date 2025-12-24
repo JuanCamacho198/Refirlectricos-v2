@@ -1,4 +1,12 @@
-import { IsString, IsInt, Min, IsArray, ValidateNested, IsOptional, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  Min,
+  IsArray,
+  ValidateNested,
+  IsOptional,
+  IsEnum,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderStatus } from '../../../generated/prisma/enums';
 

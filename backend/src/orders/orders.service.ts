@@ -84,7 +84,8 @@ export class OrdersService {
           total,
           shippingName: address.fullName,
           shippingPhone: address.phone,
-          shippingAddress: `${address.addressLine1} ${address.addressLine2 || ''}`.trim(),
+          shippingAddress:
+            `${address.addressLine1} ${address.addressLine2 || ''}`.trim(),
           shippingCity: address.city,
           shippingState: address.state,
           shippingZip: address.zipCode,
@@ -155,7 +156,7 @@ export class OrdersService {
   }
 
   async update(id: string, updateOrderDto: UpdateOrderDto): Promise<Order> {
-    const { status, userId, items, addressId, notes } = updateOrderDto;
+    const { status, notes } = updateOrderDto;
 
     // Filtrar y mapear datos válidos para Prisma
     const data: any = {};
