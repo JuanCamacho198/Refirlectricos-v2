@@ -244,9 +244,24 @@ export class OrdersService {
     return updatedOrder;
   }
 
-  remove(id: string): Promise<Order> {
-    return this.prisma.order.delete({
+  async remove(id: string): Promise<Order> {
+    const order = await this.prisma.order.findUnique({
       where: { id },
+      include: { items: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${id} not found`);
+    }
+
+    return this.prisma.$transaction(async (prisma) => {
+      await prisma.orderItem.deleteMany({
+        where: { orderId: id },
+      });
+
+      return prisma.order.delete({
+        where: { id },
+      });
     });
   }
 }
