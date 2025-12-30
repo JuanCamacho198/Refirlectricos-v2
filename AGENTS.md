@@ -1,4 +1,17 @@
-# AGENTS.md - Development Guidelines for Refrielectricos E-Commerce
+# AGENTS.md - Refrielectricos E-Commerce Development Guidelines
+
+## Project Overview
+
+Refrielectricos is a full-stack e-commerce platform for refrigeration equipment and supplies. Built with NestJS (backend) and Next.js 14 (frontend), featuring a monorepo structure managed with pnpm workspaces.
+
+**Tech Stack:**
+- **Backend**: NestJS, Prisma ORM, PostgreSQL, JWT Authentication
+- **Frontend**: Next.js 14 (App Router), React, Tailwind CSS, Zustand
+- **Database**: PostgreSQL on Railway
+- **Cloud**: Cloudinary (image hosting)
+- **Payments**: Wompi integration
+
+---
 
 ## Build/Lint/Test Commands
 
@@ -6,14 +19,14 @@
 ```bash
 # Development
 pnpm -C backend run start:dev    # Start with hot reload
-pnpm -C backend run build       # Build for production
-pnpm -C backend run start       # Start production server
+pnpm -C backend run build        # Build for production
+pnpm -C backend run start        # Start production server
 
 # Testing
-pnpm -C backend run test        # Run all unit tests
-pnpm -C backend run test:watch  # Run tests in watch mode
-pnpm -C backend run test:cov    # Run tests with coverage
-pnpm -C backend run test:e2e    # Run end-to-end tests
+pnpm -C backend run test         # Run all unit tests
+pnpm -C backend run test:watch   # Run tests in watch mode
+pnpm -C backend run test:cov     # Run tests with coverage
+pnpm -C backend run test:e2e     # Run end-to-end tests
 
 # Run single test file
 cd backend && npx jest src/path/to/file.spec.ts
@@ -22,22 +35,22 @@ cd backend && npx jest src/path/to/file.spec.ts
 cd backend && npx jest -t "test name pattern"
 
 # Quality
-pnpm -C backend run lint        # Lint and auto-fix
-pnpm -C backend run format      # Format with Prettier
+pnpm -C backend run lint         # Lint and auto-fix
+pnpm -C backend run format       # Format with Prettier
 ```
 
 ### Frontend (Next.js)
 ```bash
 # Development
-pnpm -C frontend/refrielectricos run dev     # Start dev server
-pnpm -C frontend/refrielectricos run build   # Build for production
-pnpm -C frontend/refrielectricos run start   # Start production server
+pnpm -C frontend/refrielectricos run dev      # Start dev server
+pnpm -C frontend/refrielectricos run build    # Build for production
+pnpm -C frontend/refrielectricos run start    # Start production server
 
 # Testing
-pnpm -C frontend/refrielectricos run test        # Run unit tests
-pnpm -C frontend/refrielectricos run test:watch  # Run tests in watch mode
-pnpm -C frontend/refrielectricos run test:e2e    # Run E2E tests (Playwright)
-pnpm -C frontend/refrielectricos run test:e2e:ui # Run E2E tests with UI
+pnpm -C frontend/refrielectricos run test         # Run unit tests
+pnpm -C frontend/refrielectricos run test:watch   # Run tests in watch mode
+pnpm -C frontend/refrielectricos run test:e2e     # Run E2E tests (Playwright)
+pnpm -C frontend/refrielectricos run test:e2e:ui  # Run E2E tests with UI
 
 # Run single test file
 cd frontend/refrielectricos && npx jest __tests__/component.test.tsx
@@ -58,15 +71,66 @@ pnpm run lint
 pnpm run format
 ```
 
+---
+
+## Project Structure
+
+### Backend Structure
+```
+backend/src/
+├── modules/           # Feature-based modules
+│   ├── auth/          # Authentication & authorization
+│   ├── users/         # User management
+│   ├── products/      # Product catalog & variants
+│   ├── cart/          # Shopping cart
+│   ├── orders/        # Order processing
+│   ├── payments/      # Payment integration (Wompi)
+│   ├── addresses/     # User addresses
+│   ├── wishlists/     # Wishlist functionality
+│   ├── reviews/       # Product reviews
+│   ├── questions/     # Product Q&A
+│   ├── notifications/ # In-app notifications
+│   ├── dashboard/     # Admin dashboard stats
+│   ├── files/         # File uploads (Cloudinary)
+│   └── settings/      # Site settings
+├── common/            # Shared utilities, guards, pipes
+├── config/            # Configuration files
+└── main.ts           # Application entry point
+```
+
+### Frontend Structure
+```
+frontend/refrielectricos/
+├── app/                      # Next.js App Router
+│   ├── (auth)/              # Auth routes (login, register)
+│   ├── (shop)/              # Shopping routes
+│   ├── admin/               # Admin dashboard
+│   └── api/                 # API routes
+├── components/
+│   ├── ui/                  # Base UI components
+│   ├── layout/              # Layout components
+│   ├── features/            # Feature-specific components
+│   └── admin/               # Admin-specific components
+├── lib/                     # Utilities, API clients, formatters
+├── hooks/                   # Custom React hooks
+├── types/                   # TypeScript type definitions
+├── context/                 # React context providers
+├── store/                   # Zustand stores
+├── schemas/                 # Zod validation schemas
+└── data/                    # Static data (e.g., Colombia regions)
+```
+
+---
+
 ## Code Style Guidelines
 
 ### TypeScript & Typing
-- **Strict typing required**: No `any` types except in exceptional cases with explicit comments
-- **Interface definitions**: Use interfaces for API responses, component props, and complex objects
-- **Type imports**: Prefer `import type` for type-only imports
+- **Strict typing required**: No implicit `any`, avoid `any` unless absolutely necessary with comments
+- **Interface definitions**: Define interfaces for API responses, component props, and complex objects
+- **Type imports**: Use `import type` for type-only imports to reduce bundle size
 - **Generic types**: Use generics for reusable components and utilities
 
-### Imports & Organization
+### Imports Order
 ```typescript
 // 1. React/Next.js imports
 import { useState, useEffect } from 'react'
@@ -83,43 +147,30 @@ import type { Product } from '@/types/product'
 ```
 
 ### Naming Conventions
-- **Components**: PascalCase (`ProductCard`, `UserProfile`)
-- **Files**: kebab-case for components, camelCase for utilities (`product-card.tsx`, `formatCurrency.ts`)
-- **Hooks**: camelCase with `use` prefix (`useAuth`, `useCart`)
-- **Types/Interfaces**: PascalCase (`User`, `ApiResponse`)
-- **Constants**: SCREAMING_SNAKE_CASE (`API_BASE_URL`)
-- **Functions**: camelCase (`getUserData`, `formatPrice`)
+| Type | Convention | Examples |
+|------|------------|----------|
+| Components | PascalCase | `ProductCard`, `UserProfile` |
+| Component files | kebab-case | `product-card.tsx`, `user-avatar.tsx` |
+| Utility files | camelCase | `formatCurrency.ts`, `apiClient.ts` |
+| Hooks | camelCase with `use` | `useAuth`, `useCart` |
+| Types/Interfaces | PascalCase | `User`, `ApiResponse`, `ProductFilters` |
+| Constants | SCREAMING_SNAKE_CASE | `API_BASE_URL`, `MAX_UPLOAD_SIZE` |
+| Functions | camelCase | `getUserData`, `formatPrice`, `isValidEmail` |
+| Database fields | snake_case | `created_at`, `user_id` |
 
-### Error Handling
+---
+
+## Component Patterns
+
+### Server Component (Default)
 ```typescript
-// Backend (NestJS)
-try {
-  const result = await this.service.operation()
-  return result
-} catch (error) {
-  this.logger.error('Operation failed', error)
-  throw new HttpException('Operation failed', HttpStatus.INTERNAL_SERVER_ERROR)
-}
-
-// Frontend (React)
-const [error, setError] = useState<string | null>(null)
-
-try {
-  const data = await api.get(endpoint)
-  // handle success
-} catch (err) {
-  setError(err instanceof Error ? err.message : 'Unknown error')
-}
-```
-
-### Component Patterns
-```typescript
-// Server Component (default)
 export default function ProductPage({ params }: { params: { id: string } }) {
   return <div>Product content</div>
 }
+```
 
-// Client Component (interactive)
+### Client Component (Interactive)
+```typescript
 'use client'
 
 interface ButtonProps {
@@ -143,12 +194,40 @@ export function Button({ children, onClick, variant = 'primary' }: ButtonProps) 
 }
 ```
 
-### Styling (Tailwind CSS)
-- **Mobile-first**: Start with mobile styles, add `sm:`, `md:`, `lg:` prefixes
+### Component Props Pattern
+```typescript
+interface CardProps {
+  className?: string
+  children: React.ReactNode
+  onClick?: () => void
+}
+
+export function Card({ className, children, onClick }: CardProps) {
+  return (
+    <div
+      onClick={onClick}
+      className={cn(
+        'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4',
+        className
+      )}
+    >
+      {children}
+    </div>
+  )
+}
+```
+
+---
+
+## Styling (Tailwind CSS)
+
+### Guidelines
+- **Mobile-first**: Start with mobile styles, add responsive prefixes (`sm:`, `md:`, `lg:`)
 - **Dark mode**: Always include `dark:` variants for new components
 - **Utility classes**: Prefer Tailwind utilities over custom CSS
-- **Conditional styling**: Use `clsx` or `cn` utility for dynamic classes
+- **Dynamic classes**: Use `clsx` or `cn` utility for conditional classes
 
+### Example
 ```typescript
 import { cn } from '@/lib/utils'
 
@@ -164,41 +243,163 @@ export function Card({ className, children }: CardProps) {
 }
 ```
 
-### API Integration
+---
+
+## API Integration
+
+### Frontend API Calls
 ```typescript
-// Frontend API calls
 export async function getProducts(params?: ProductFilters) {
   const response = await api.get<Product[]>('/products', { params })
   return response.data
 }
 
-// Backend API responses
+export async function createOrder(data: CreateOrderDTO) {
+  const response = await api.post<Order>('/orders', data)
+  return response.data
+}
+```
+
+### Backend API Responses
+```typescript
 @Post('products')
 async create(@Body() createProductDto: CreateProductDto): Promise<Product> {
   return this.productsService.create(createProductDto)
 }
+
+@Get('products/:id')
+async findOne(@Param('id') id: string): Promise<Product> {
+  const product = await this.productsService.findById(id)
+  if (!product) {
+    throw new NotFoundException(`Product with ID ${id} not found`)
+  }
+  return product
+}
 ```
 
-### File Structure
-```
-backend/src/
-├── modules/          # Feature modules
-├── common/           # Shared utilities
-├── config/           # Configuration files
-└── main.ts          # Application entry
+### API Response Format
+- **Success**: Return directly the data or `{ data: ... }` for arrays
+- **Errors**: Throw `HttpException` with appropriate status code
+- **Validation**: Use class-validator decorators on DTOs
 
-frontend/
-├── app/              # Next.js app router
-├── components/       # Reusable components
-├── lib/              # Utilities and API clients
-├── hooks/            # Custom React hooks
-├── types/            # TypeScript definitions
-└── context/          # React context providers
-```
+---
 
-### Testing Patterns
+## Database & ORM (Prisma)
+
+### Query Optimization
+- Use `select` to fetch only needed fields
+- Use `include` for relations (avoid N+1 problems)
+- Prefer `findUnique` over `findFirst` when searching by ID
+
+### Example
 ```typescript
-// Unit test (Jest)
+// Good - selective fields
+const products = await prisma.product.findMany({
+  select: {
+    id: true,
+    name: true,
+    price: true,
+    images: true
+  },
+  where: { active: true }
+})
+
+// Good - with relations
+const order = await prisma.order.findUnique({
+  where: { id },
+  include: {
+    items: true,
+    shippingAddress: true,
+    user: {
+      select: { id: true, name: true, email: true }
+    }
+  }
+})
+```
+
+---
+
+## Error Handling
+
+### Backend (NestJS)
+```typescript
+try {
+  const result = await this.service.operation()
+  return result
+} catch (error) {
+  this.logger.error('Operation failed', error)
+  throw new HttpException(
+    'Operation failed',
+    HttpStatus.INTERNAL_SERVER_ERROR
+  )
+}
+```
+
+### Frontend (React)
+```typescript
+const [error, setError] = useState<string | null>(null)
+
+try {
+  const data = await api.get(endpoint)
+  // handle success
+} catch (err) {
+  setError(err instanceof Error ? err.message : 'Unknown error')
+}
+```
+
+---
+
+## Authentication & Authorization
+
+### Backend
+- JWT-based authentication using Passport
+- Guards protect routes: `@UseAuth(JwtAuthGuard)`
+- Role-based access: Custom decorators for admin routes
+
+### Frontend
+- Auth store with Zustand for state management
+- Protected routes check authentication status
+- httpOnly cookies preferred for token storage
+
+### User Roles
+- `USER`: Standard customer
+- `ADMIN`: Full access to dashboard and management features
+
+---
+
+## State Management
+
+### Global State (Zustand)
+```typescript
+// Auth store
+interface AuthState {
+  user: User | null
+  isAuthenticated: boolean
+  login: (credentials: LoginDTO) => Promise<void>
+  logout: () => void
+}
+
+// Cart store
+interface CartState {
+  items: CartItem[]
+  addItem: (product: Product, quantity: number) => void
+  removeItem: (productId: string) => void
+  clearCart: () => void
+  total: () => number
+}
+```
+
+### Server State (React Query)
+- Use for server data that needs caching/refetching
+- Built-in loading and error states
+- Automatic refetching on focus
+
+---
+
+## Testing Guidelines
+
+### Unit Tests (Jest)
+```typescript
 describe('ProductCard', () => {
   it('renders product name and price', () => {
     render(<ProductCard product={mockProduct} />)
@@ -206,8 +407,10 @@ describe('ProductCard', () => {
     expect(screen.getByText('$99.99')).toBeInTheDocument()
   })
 })
+```
 
-// E2E test (Playwright)
+### E2E Tests (Playwright)
+```typescript
 test('user can add product to cart', async ({ page }) => {
   await page.goto('/products')
   await page.click('[data-testid="add-to-cart"]')
@@ -215,23 +418,182 @@ test('user can add product to cart', async ({ page }) => {
 })
 ```
 
-### Git Workflow
-- **Branch naming**: `feature/description`, `fix/issue-number`
-- **Commit messages**: `feat: add user authentication`, `fix: resolve cart calculation bug`
-- **Pre-commit hooks**: ESLint and Prettier auto-fix via lint-staged
+### Testing Best Practices
+- Write tests for critical paths (checkout, auth, payments)
+- Use `data-testid` for E2E element selection
+- Mock external services in unit tests
+- Aim for meaningful coverage, not just percentage
 
-### Performance Considerations
-- **Images**: Always use `next/image` with appropriate sizes
-- **API calls**: Implement proper loading states and error boundaries
-- **Bundle size**: Lazy load components and routes when possible
-- **Database queries**: Use Prisma includes/select to avoid N+1 problems
+---
 
-### Security
-- **Input validation**: Use Zod schemas for frontend, class-validator for backend
-- **Authentication**: JWT tokens stored securely (httpOnly cookies preferred)
-- **API protection**: Guards and middleware for sensitive endpoints
-- **Environment variables**: Never commit secrets, use Railway env vars
+## Git Workflow
 
-## Copilot Instructions
-See `.github/copilot-instructions.md` for detailed AI assistant guidelines and project context.</content>
-<parameter name="filePath">C:\Users\Juan Camacho\Documents\REFRIELECTRICOS\REFRI_V2\AGENTS.md
+### Branch Naming
+- Features: `feature/description`
+- Bug fixes: `fix/issue-number`
+- Hot fixes: `hotfix/description`
+
+### Commit Message Format
+```
+type(scope): subject
+
+feat(auth): add Google OAuth login
+fix(cart): resolve quantity update bug
+docs(readme): update installation instructions
+chore(deps): update dependencies
+```
+
+### Allowed Types
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation only
+- `style`: Formatting, no code change
+- `refactor`: Code restructuring
+- `test`: Adding tests
+- `chore`: Maintenance tasks
+
+### Pre-commit Hooks
+- ESLint checks
+- Prettier formatting
+- Husky manages hooks via `lint-staged`
+
+---
+
+## Performance Considerations
+
+### Frontend
+- Use `next/image` with proper `sizes` attribute
+- Implement lazy loading for routes and components
+- Use React.memo for expensive components
+- Debounce search inputs with `useDebounce` hook
+
+### Backend
+- Use Prisma `select` and `include` to limit fetched data
+- Implement pagination for list endpoints
+- Cache frequently accessed data when needed
+- Use database indexes on frequently queried columns
+
+### Database
+- Add indexes on: `user_id`, `product_id`, `created_at`, `slug`
+- Use `take` and `skip` for pagination
+- Avoid N+1 queries with proper `include` usage
+
+---
+
+## Security Guidelines
+
+### Input Validation
+- Frontend: Zod schemas for form validation
+- Backend: class-validator decorators on DTOs
+- Validate all user inputs on the server
+
+### Authentication
+- JWT tokens in httpOnly cookies (preferred)
+- Implement proper password hashing (bcrypt)
+- Add rate limiting on auth endpoints
+
+### API Protection
+- Use guards for protected routes
+- Implement CORS properly
+- Validate request bodies and query parameters
+
+### Environment Variables
+- Never commit `.env` files
+- Use Railway environment variables
+- Prefix sensitive variables: `JWT_SECRET`, `DATABASE_URL`
+
+---
+
+## Deployment
+
+### Environment Variables Required
+```
+# Backend
+DATABASE_URL, JWT_SECRET, JWT_EXPIRATION, CLOUDINARY_URL
+
+# Frontend
+NEXT_PUBLIC_API_URL, NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+```
+
+### Build Commands
+```bash
+# Backend
+pnpm -C backend run build
+pnpm -C backend run start:prod
+
+# Frontend
+pnpm -C frontend/refrielectricos run build
+pnpm -C frontend/refrielectricos run start
+```
+
+---
+
+## Common Workflows
+
+### Adding a New Feature
+1. Create feature branch from `develop`
+2. Add backend endpoint (controller + service + DTO)
+3. Add database migration if needed
+4. Create frontend components and pages
+5. Add tests (unit + E2E if applicable)
+6. Update documentation
+7. Create pull request for review
+
+### Fixing a Bug
+1. Create issue or use existing issue number
+2. Create branch: `fix/issue-number-description`
+3. Write failing test first (TDD approach)
+4. Implement fix
+5. Verify test passes
+6. Create pull request
+
+### Database Migrations
+```bash
+# Create new migration
+cd backend && npx prisma migrate dev --name migration_name
+
+# Apply migrations in production
+cd backend && npx prisma migrate deploy
+
+# Reset database (dev only)
+cd backend && npx prisma migrate reset
+```
+
+---
+
+## External Integrations
+
+### Cloudinary (Images)
+- Upload product and user images via files module
+- Use optimized transformations for thumbnails
+- Store only public_id in database
+
+### Wompi (Payments)
+- Payment processing for orders
+- Webhook handling for payment events
+- Support for Colombian payment methods
+
+### Colombia Data
+- Use provided `colombiaData.js` for departments/cities
+- Pre-loaded with valid Colombia regions
+
+---
+
+## Additional Resources
+
+- **Copilot Instructions**: See `.github/copilot-instructions.md` for detailed AI assistant guidelines
+- **Backend README**: See `backend/README.md` for backend-specific documentation
+- **Frontend README**: See `frontend/refrielectricos/README.md` for frontend-specific documentation
+
+---
+
+## Quick Reference
+
+| Task | Command |
+|------|---------|
+| Start dev servers | `pnpm run dev` |
+| Run all tests | `pnpm run test` |
+| Lint project | `pnpm run lint` |
+| Format code | `pnpm run format` |
+| Install deps | `pnpm install` |
+| Database reset | `cd backend && npx prisma migrate reset` |
