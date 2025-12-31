@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './useAuth';
-import { useCartStore } from '@/store/cartStore';
+import { useCartStore, CartItem } from '@/store/cartStore';
 import api from '@/lib/api';
 import { useEffect } from 'react';
 import { Product, ProductVariant } from '@/types/product';
+import { useToast, ToastType } from '@/context/ToastContext';
 
 interface CartApiItem {
   productId: string;
@@ -17,10 +18,14 @@ interface CartApiData {
   items: CartApiItem[];
 }
 
+const getAvailableStock = (product: Product, variant?: ProductVariant): number => {
+  return variant?.stock ?? product.stock;
+};
+
 export const useCart = () => {
   const { isAuthenticated } = useAuth();
-  
-  // Select specific parts of the store to avoid unnecessary re-renders and infinite loops
+  const { addToast } = useToast();
+
   const items = useCartStore((state) => state.items);
   const isOpen = useCartStore((state) => state.isOpen);
   const toggleCart = useCartStore((state) => state.toggleCart);
@@ -32,7 +37,6 @@ export const useCart = () => {
 
   const queryClient = useQueryClient();
 
-  // Fetch cart from DB if user is logged in
   const { data: dbCart } = useQuery({
     queryKey: ['cart'],
     queryFn: async () => {
@@ -42,7 +46,6 @@ export const useCart = () => {
     enabled: isAuthenticated,
   });
 
-  // Sync DB cart to local store
   useEffect(() => {
     if (isAuthenticated && dbCart) {
       const mappedItems = dbCart.items.map((item: CartApiItem) => ({
@@ -56,28 +59,57 @@ export const useCart = () => {
     }
   }, [isAuthenticated, dbCart, setItems]);
 
-  // Mutations
+  const showToast = (title: string, type: ToastType = 'info') => {
+    addToast(title, type);
+  };
+
+  const checkStockBeforeAdd = (product: Product, quantity: number, variant?: ProductVariant): boolean => {
+    const availableStock = getAvailableStock(product, variant);
+
+    if (availableStock <= 0) {
+      showToast(`${product.name} está fuera de stock`, 'error');
+      return false;
+    }
+
+    const existingItem = items.find(
+      (item) => item.id === product.id && item.variantId === variant?.id
+    );
+
+    const currentQuantity = existingItem ? existingItem.quantity : 0;
+    if (currentQuantity + quantity > availableStock) {
+      showToast(`Solo hay ${availableStock} unidades disponibles de ${product.name}`, 'warning');
+      return false;
+    }
+
+    return true;
+  };
+
   const addToCartMutation = useMutation({
     mutationFn: async ({ product, quantity, variant }: { product: Product, quantity: number, variant?: ProductVariant }) => {
+      const availableStock = getAvailableStock(product, variant);
+      if (availableStock <= 0) {
+        throw new Error('OUT_OF_STOCK');
+      }
+      if (quantity > availableStock) {
+        throw new Error('INSUFFICIENT_STOCK');
+      }
       return api.post('/cart/items', { productId: product.id, variantId: variant?.id, quantity });
     },
     onMutate: async ({ product, quantity, variant }) => {
       await queryClient.cancelQueries({ queryKey: ['cart'] });
       const previousCart = queryClient.getQueryData<CartApiData>(['cart']);
 
-      // Optimistic update
       localAddItem(product, quantity, variant);
-      
+
       queryClient.setQueryData<CartApiData>(['cart'], (old) => {
         if (!old) return old;
-        // Check if item exists (same product + variant combo)
         const exists = old.items.find(
           (item) => item.productId === product.id && item.variantId === variant?.id
         );
         if (exists) {
           return {
             ...old,
-            items: old.items.map((item) => 
+            items: old.items.map((item) =>
               item.productId === product.id && item.variantId === variant?.id
                 ? { ...item, quantity: item.quantity + quantity }
                 : item
@@ -92,10 +124,16 @@ export const useCart = () => {
 
       return { previousCart };
     },
-    onError: (err, variables, context) => {
+    onError: (err: Error, variables, context) => {
+      if (err.message === 'OUT_OF_STOCK') {
+        showToast(`${variables.product.name} está fuera de stock`, 'error');
+      } else if (err.message === 'INSUFFICIENT_STOCK') {
+        const availableStock = getAvailableStock(variables.product, variables.variant);
+        showToast(`Solo hay ${availableStock} unidades disponibles de ${variables.product.name}`, 'warning');
+      }
+
       if (context?.previousCart) {
         queryClient.setQueryData(['cart'], context.previousCart);
-        // Re-sync zustand from previous cart
         const mappedItems = context.previousCart.items.map((item) => ({
           id: item.productId,
           variantId: item.variantId,
@@ -113,8 +151,8 @@ export const useCart = () => {
 
   const updateQuantityMutation = useMutation({
     mutationFn: async ({ productId, quantity, variantId }: { productId: string, quantity: number, variantId?: string }) => {
-      const endpoint = variantId 
-        ? `/cart/items/${productId}?variantId=${variantId}` 
+      const endpoint = variantId
+        ? `/cart/items/${productId}?variantId=${variantId}`
         : `/cart/items/${productId}`;
       return api.patch(endpoint, { quantity });
     },
@@ -122,14 +160,21 @@ export const useCart = () => {
       await queryClient.cancelQueries({ queryKey: ['cart'] });
       const previousCart = queryClient.getQueryData<CartApiData>(['cart']);
 
-      // Optimistic update
-      localUpdateQuantity(productId, quantity, variantId);
+      const success = localUpdateQuantity(productId, quantity, variantId);
+      if (!success) {
+        const item = items.find((i) => i.id === productId && i.variantId === variantId);
+        if (item) {
+          const availableStock = getAvailableStock(item.product, item.variant);
+          showToast(`Solo hay ${availableStock} unidades disponibles`, 'warning');
+        }
+        throw new Error('STOCK_ERROR');
+      }
 
       queryClient.setQueryData<CartApiData>(['cart'], (old) => {
         if (!old) return old;
         return {
           ...old,
-          items: old.items.map((item) => 
+          items: old.items.map((item) =>
             item.productId === productId && item.variantId === variantId
               ? { ...item, quantity }
               : item
@@ -139,18 +184,19 @@ export const useCart = () => {
 
       return { previousCart };
     },
-    onError: (err, variables, context) => {
-      if (context?.previousCart) {
-        queryClient.setQueryData(['cart'], context.previousCart);
-        // Re-sync zustand
-        const mappedItems = context.previousCart.items.map((item) => ({
-          id: item.productId,
-          variantId: item.variantId,
-          quantity: item.quantity,
-          product: item.product,
-          variant: item.variant,
-        }));
-        setItems(mappedItems);
+    onError: (err: Error, variables, context) => {
+      if (err.message !== 'STOCK_ERROR') {
+        if (context?.previousCart) {
+          queryClient.setQueryData(['cart'], context.previousCart);
+          const mappedItems = context.previousCart.items.map((item) => ({
+            id: item.productId,
+            variantId: item.variantId,
+            quantity: item.quantity,
+            product: item.product,
+            variant: item.variant,
+          }));
+          setItems(mappedItems);
+        }
       }
     },
     onSettled: () => {
@@ -160,8 +206,8 @@ export const useCart = () => {
 
   const removeFromCartMutation = useMutation({
     mutationFn: async ({ productId, variantId }: { productId: string, variantId?: string }) => {
-      const endpoint = variantId 
-        ? `/cart/items/${productId}?variantId=${variantId}` 
+      const endpoint = variantId
+        ? `/cart/items/${productId}?variantId=${variantId}`
         : `/cart/items/${productId}`;
       return api.delete(endpoint);
     },
@@ -169,7 +215,6 @@ export const useCart = () => {
       await queryClient.cancelQueries({ queryKey: ['cart'] });
       const previousCart = queryClient.getQueryData<CartApiData>(['cart']);
 
-      // Optimistic update
       localRemoveItem(productId, variantId);
 
       queryClient.setQueryData<CartApiData>(['cart'], (old) => {
@@ -187,7 +232,6 @@ export const useCart = () => {
     onError: (err, variables, context) => {
       if (context?.previousCart) {
         queryClient.setQueryData(['cart'], context.previousCart);
-        // Re-sync zustand
         const mappedItems = context.previousCart.items.map((item) => ({
           id: item.productId,
           variantId: item.variantId,
@@ -212,7 +256,6 @@ export const useCart = () => {
     },
   });
 
-  // Merge local cart on login
   const mergeCartMutation = useMutation({
     mutationFn: async (items: { productId: string, quantity: number }[]) => {
       return api.post('/cart/merge', items);
@@ -222,12 +265,21 @@ export const useCart = () => {
     },
   });
 
-  // Wrapper functions
   const addItem = (product: Product, quantity = 1, variant?: ProductVariant) => {
     if (isAuthenticated) {
-      addToCartMutation.mutate({ product, quantity, variant });
+      if (checkStockBeforeAdd(product, quantity, variant)) {
+        addToCartMutation.mutate({ product, quantity, variant });
+      }
     } else {
-      localAddItem(product, quantity, variant);
+      const success = localAddItem(product, quantity, variant);
+      if (!success) {
+        const availableStock = getAvailableStock(product, variant);
+        if (availableStock <= 0) {
+          showToast(`${product.name} está fuera de stock`, 'error');
+        } else {
+          showToast(`Solo hay ${availableStock} unidades disponibles de ${product.name}`, 'warning');
+        }
+      }
     }
   };
 
@@ -235,7 +287,14 @@ export const useCart = () => {
     if (isAuthenticated) {
       updateQuantityMutation.mutate({ productId, quantity, variantId });
     } else {
-      localUpdateQuantity(productId, quantity, variantId);
+      const success = localUpdateQuantity(productId, quantity, variantId);
+      if (!success) {
+        const item = items.find((i) => i.id === productId && i.variantId === variantId);
+        if (item) {
+          const availableStock = getAvailableStock(item.product, item.variant);
+          showToast(`Solo hay ${availableStock} unidades disponibles`, 'warning');
+        }
+      }
     }
   };
 
@@ -255,7 +314,6 @@ export const useCart = () => {
     }
   };
 
-  // Calculate total - use variant price if available
   const totalPrice = items.reduce(
     (total, item) => {
       const price = item.variant?.price ?? item.product.price;
@@ -269,6 +327,13 @@ export const useCart = () => {
     0
   );
 
+  const outOfStockItems: CartItem[] = items.filter((item) => {
+    const availableStock = getAvailableStock(item.product, item.variant);
+    return availableStock <= 0;
+  });
+
+  const hasOutOfStockItems = outOfStockItems.length > 0;
+
   return {
     toggleCart,
     addItem,
@@ -280,6 +345,8 @@ export const useCart = () => {
     isOpen,
     totalPrice,
     totalItems,
+    outOfStockItems,
+    hasOutOfStockItems,
     isLoading: isAuthenticated && !dbCart,
   };
 };

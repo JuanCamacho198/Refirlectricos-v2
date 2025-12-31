@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
@@ -29,9 +33,36 @@ export class CartService {
   async addToCart(userId: string, dto: AddToCartDto) {
     const cart = await this.getCart(userId);
 
-    // Find existing item with same product AND variant
-    // Note: Prisma unique index with nullable field requires findFirst instead of findUnique
-    // when variantId is null (SQL NULL != NULL)
+    const product = await this.prisma.product.findUnique({
+      where: { id: dto.productId },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    let availableStock = product.stock;
+
+    if (dto.variantId) {
+      const variant = await this.prisma.productVariant.findUnique({
+        where: { id: dto.variantId },
+      });
+
+      if (!variant) {
+        throw new NotFoundException('Variant not found');
+      }
+
+      if (!variant.isActive) {
+        throw new BadRequestException('Variant is not available');
+      }
+
+      availableStock = variant.stock;
+    }
+
+    if (availableStock <= 0) {
+      throw new BadRequestException('Product is out of stock');
+    }
+
     const existingItem = await this.prisma.cartItem.findFirst({
       where: {
         cartId: cart.id,
@@ -41,12 +72,21 @@ export class CartService {
     });
 
     if (existingItem) {
+      const newQuantity = existingItem.quantity + dto.quantity;
+      if (newQuantity > availableStock) {
+        throw new BadRequestException(`Only ${availableStock} units available`);
+      }
+
       return this.prisma.cartItem.update({
         where: { id: existingItem.id },
-        data: { quantity: existingItem.quantity + dto.quantity },
+        data: { quantity: newQuantity },
         include: { product: true, variant: true },
       });
     } else {
+      if (dto.quantity > availableStock) {
+        throw new BadRequestException(`Only ${availableStock} units available`);
+      }
+
       return this.prisma.cartItem.create({
         data: {
           cartId: cart.id,
@@ -67,7 +107,6 @@ export class CartService {
   ) {
     const cart = await this.getCart(userId);
 
-    // Use findFirst instead of findUnique for nullable variantId
     const item = await this.prisma.cartItem.findFirst({
       where: {
         cartId: cart.id,
@@ -80,6 +119,30 @@ export class CartService {
       throw new NotFoundException('Item not found in cart');
     }
 
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    let availableStock = product.stock;
+
+    if (variantId) {
+      const variant = await this.prisma.productVariant.findUnique({
+        where: { id: variantId },
+      });
+
+      if (variant) {
+        availableStock = variant.stock;
+      }
+    }
+
+    if (dto.quantity > availableStock) {
+      throw new BadRequestException(`Only ${availableStock} units available`);
+    }
+
     return this.prisma.cartItem.update({
       where: { id: item.id },
       data: { quantity: dto.quantity },
@@ -90,7 +153,6 @@ export class CartService {
   async removeFromCart(userId: string, productId: string, variantId?: string) {
     const cart = await this.getCart(userId);
 
-    // Use findFirst instead of findUnique for nullable variantId
     const item = await this.prisma.cartItem.findFirst({
       where: {
         cartId: cart.id,
@@ -116,9 +178,15 @@ export class CartService {
   }
 
   async mergeCart(userId: string, items: AddToCartDto[]) {
-    // We don't need to get the cart here, addToCart handles it
     for (const item of items) {
-      await this.addToCart(userId, item);
+      try {
+        await this.addToCart(userId, item);
+      } catch (error) {
+        if (error instanceof BadRequestException) {
+          continue;
+        }
+        throw error;
+      }
     }
 
     return this.getCart(userId);
