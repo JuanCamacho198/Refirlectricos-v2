@@ -10,6 +10,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Request as ExpressRequest } from 'express';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -34,6 +35,7 @@ interface RequestWithUser extends ExpressRequest {
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
+  @Throttle({ short: { limit: 5, ttl: 1000 } }) // 5 órdenes por segundo
   @Post()
   create(@Body() createOrderDto: CreateOrderDto) {
     return this.ordersService.create(createOrderDto);

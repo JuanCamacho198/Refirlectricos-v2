@@ -6,12 +6,17 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Throttle } from '@nestjs/throttler';
 import { FilesService } from './files.service';
 
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
+  @Throttle({
+    short: { limit: 5, ttl: 1000 },
+    medium: { limit: 20, ttl: 10000 },
+  }) // 5 por segundo, 20 por 10 segundos
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {

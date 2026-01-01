@@ -17,7 +17,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute for login
+  @Throttle({ short: { limit: 3, ttl: 1000 } }) // 3 requests por segundo
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     const user = await this.authService.validateUser(
@@ -30,7 +30,7 @@ export class AuthController {
     return this.authService.login(user);
   }
 
-  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 requests per minute for register
+  @Throttle({ short: { limit: 2, ttl: 1000 } }) // 2 requests por segundo
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto) {
     return this.authService.register(createUserDto);

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -19,6 +19,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { QuestionsModule } from './questions/questions.module';
 import { SettingsModule } from './settings/settings.module';
 import { PaymentsModule } from './payments/payments.module';
+import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 
 @Module({
   imports: [
@@ -28,8 +29,19 @@ import { PaymentsModule } from './payments/payments.module';
     }),
     ThrottlerModule.forRoot([
       {
-        ttl: 60000,
-        limit: 100,
+        name: 'short',
+        ttl: parseInt(process.env.THROTTLE_SHORT_TTL ?? '1000', 10),
+        limit: parseInt(process.env.THROTTLE_SHORT_LIMIT ?? '10', 10),
+      },
+      {
+        name: 'medium',
+        ttl: parseInt(process.env.THROTTLE_MEDIUM_TTL ?? '10000', 10),
+        limit: parseInt(process.env.THROTTLE_MEDIUM_LIMIT ?? '50', 10),
+      },
+      {
+        name: 'long',
+        ttl: parseInt(process.env.THROTTLE_LONG_TTL ?? '60000', 10),
+        limit: parseInt(process.env.THROTTLE_LONG_LIMIT ?? '100', 10),
       },
     ]),
     PrismaModule,
@@ -53,7 +65,7 @@ import { PaymentsModule } from './payments/payments.module';
     AppService,
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: CustomThrottlerGuard,
     },
   ],
 })

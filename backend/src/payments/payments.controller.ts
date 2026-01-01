@@ -14,6 +14,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentSessionDto } from './dto/create-payment-session.dto';
 import { EpaycoConfirmationDto } from './dto/epayco-confirmation.dto';
@@ -29,6 +30,7 @@ export class PaymentsController {
    * Called by frontend when user clicks "Pay with ePayco"
    * Returns form data to submit to ePayco checkout
    */
+  @Throttle({ short: { limit: 5, ttl: 1000 } }) // 5 payment sessions por segundo
   @Post('create-session')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -60,6 +62,7 @@ export class PaymentsController {
    * Called by ePayco servers after payment completion
    * MUST be publicly accessible (no auth guard)
    */
+  @Throttle({ medium: { limit: 20, ttl: 10000 } }) // 20 confirmaciones por 10 segundos
   @Post('epayco-confirmation')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'ePayco webhook confirmation (public)' })

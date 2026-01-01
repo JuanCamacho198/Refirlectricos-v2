@@ -73,6 +73,27 @@ pnpm run format
 
 ---
 
+## Documentation Guidelines
+
+### File Location
+- **Always** place new documentation files in the `.docs/` directory at the root of the project.
+- Use kebab-case for filenames (e.g., `.docs/rate-limiting.md`).
+- Update the main `README.md` or this `AGENTS.md` if the new documentation is critical.
+
+### Documentation Types
+- **README**: Project overview, setup, and quick start.
+- **API Docs**: Detailed endpoint documentation (prefer Swagger/OpenAPI).
+- **Architecture**: System design and data flow.
+- **Guides**: Step-by-step instructions for specific features (e.g., Rate Limiting).
+
+### Best Practices
+- **Audience-focused**: Write for developers and maintainers.
+- **Example-driven**: Include code snippets and configuration examples.
+- **Maintainable**: Keep documentation close to the implementation.
+- **Clear & Concise**: Use structured headings and simple language.
+
+---
+
 ## Project Structure
 
 ### Backend Structure
