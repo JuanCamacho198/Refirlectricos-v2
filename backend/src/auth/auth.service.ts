@@ -78,6 +78,11 @@ export class AuthService {
 
       const user = storedToken.user;
 
+      // ROTATION: Delete the old refresh token (invalidate it)
+      await this.prisma.refreshToken.delete({
+        where: { id: storedToken.id },
+      });
+
       // Generate new access token
       const accessPayload = {
         email: user.email,
@@ -87,10 +92,27 @@ export class AuthService {
       const expiresIn = user.role === 'ADMIN' ? '24h' : '1h';
       const newAccessToken = this.jwtService.sign(accessPayload, { expiresIn });
 
+      // ROTATION: Generate new refresh token
+      const newRefreshTokenPayload = { sub: user.id };
+      const newRefreshToken = this.jwtService.sign(newRefreshTokenPayload, {
+        expiresIn: '7d',
+      });
+
+      // Store new refresh token in database
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+      await this.prisma.refreshToken.create({
+        data: {
+          token: newRefreshToken,
+          userId: user.id,
+          expiresAt,
+        },
+      });
+
       return {
         access_token: newAccessToken,
+        refresh_token: newRefreshToken, // Return new refresh token
       };
-    } catch {
+    } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
@@ -104,6 +126,40 @@ export class AuthService {
   async logout(refreshToken: string) {
     await this.prisma.refreshToken.deleteMany({
       where: { token: refreshToken },
+    });
+  }
+
+  /**
+   * Limpia tokens expirados de la base de datos
+   * Puede ser llamado periódicamente por un cron job
+   */
+  async cleanupExpiredTokens() {
+    const deleted = await this.prisma.refreshToken.deleteMany({
+      where: {
+        expiresAt: {
+          lt: new Date(),
+        },
+      },
+    });
+
+    return {
+      deleted: deleted.count,
+      message: `${deleted.count} expired tokens removed`,
+    };
+  }
+
+  /**
+   * Revoca todos los tokens de un usuario excepto el actual
+   * Útil para "Cerrar sesión en otros dispositivos"
+   */
+  async revokeOtherTokens(userId: string, currentToken: string) {
+    await this.prisma.refreshToken.deleteMany({
+      where: {
+        userId,
+        token: {
+          not: currentToken,
+        },
+      },
     });
   }
 }
