@@ -145,7 +145,7 @@ export default function Navbar() {
               <span className={`font-extrabold tracking-tight leading-none whitespace-nowrap block transition-all duration-300 ${
                 isScrolled ? 'text-lg md:text-xl' : 'text-xl md:text-2xl'
               }`}>
-                <span className="text-blue-600">REFRI</span><span className="text-gray-900 dark:text-white">ELECTRICOS</span>
+                <span className="text-blue-600 drop-shadow-sm">REFRI</span><span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent drop-shadow-sm">ELECTRICOS</span>
               </span>
             </Link>
 
@@ -163,8 +163,10 @@ export default function Navbar() {
             )}
 
             {/* Theme Toggle (Moved to top right for balance) */}
-            <div className={`hidden md:block transition-opacity duration-300 ${isScrolled ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100'}`}>
-               <ThemeToggle />
+            <div className="hidden md:flex items-center gap-4">
+              <div>
+                <ThemeToggle />
+              </div>
             </div>
 
             {/* Right Actions (Visible on Scroll) */}
