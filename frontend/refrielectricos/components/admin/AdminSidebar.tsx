@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Zap } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
@@ -19,43 +19,73 @@ export default function AdminSidebar() {
   const { logout } = useAuth();
 
   return (
-    <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-screen sticky top-0 flex flex-col">
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl font-bold bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-            RefriAdmin
-          </span>
+    <aside className="w-72 bg-slate-900 border-r border-slate-800 text-slate-300 h-screen sticky top-0 flex flex-col font-sans transition-all duration-300 ease-in-out shadow-2xl z-50">
+      {/* Brand Header */}
+      <div className="h-20 flex items-center px-6 border-b border-slate-800 bg-slate-950/50 backdrop-blur-md">
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-300">
+            <Zap className="text-white h-6 w-6 fill-current" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-lg font-bold text-white tracking-wide group-hover:text-blue-400 transition-colors">
+              REFRI<span className="text-blue-400">ADMIN</span>
+            </span>
+            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Control Panel</span>
+          </div>
         </Link>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      {/* Navigation */}
+      <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto custom-scrollbar">
+        <div className="px-4 mb-2 text-xs font-mono font-semibold text-slate-500 uppercase tracking-widest">
+          Main Menu
+        </div>
         {menuItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+                'group relative flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 border border-transparent',
                 isActive
-                  ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                  ? 'bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-inner'
+                  : 'hover:bg-slate-800/50 hover:text-white hover:border-slate-700/50'
               )}
             >
-              <item.icon size={20} />
-              {item.name}
+              {isActive && (
+                <div className="absolute left-0 w-1 h-8 bg-blue-500 rounded-r-full shadow-[0_0_12px_rgba(59,130,246,0.5)]" />
+              )}
+              <item.icon 
+                size={20} 
+                className={cn(
+                  "transition-colors duration-200",
+                  isActive ? "text-blue-400" : "text-slate-500 group-hover:text-slate-300"
+                )} 
+              />
+              <span className="tracking-wide">{item.name}</span>
+              
+              {isActive && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.8)] animate-pulse" />
+              )}
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      {/* Footer / User Profile */}
+      <div className="p-4 border-t border-slate-800 bg-slate-950/30">
         <button
           onClick={logout}
-          className="flex items-center gap-3 px-4 py-3 w-full text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+          className="group flex items-center gap-3 px-4 py-3 w-full text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-200 border border-transparent hover:border-red-500/20"
         >
-          <LogOut size={20} />
-          Cerrar Sesión
+          <div className="p-2 rounded-lg bg-slate-800 group-hover:bg-red-500/20 transition-colors">
+            <LogOut size={18} />
+          </div>
+          <div className="flex flex-col items-start">
+            <span className="font-semibold">Cerrar Sesión</span>
+            <span className="text-[10px] text-slate-500 group-hover:text-red-400/70">End session</span>
+          </div>
         </button>
       </div>
     </aside>
