@@ -6,6 +6,11 @@ import helmet from 'helmet';
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
 import { AppModule } from './app.module';
+import {
+  HttpExceptionFilter,
+  PrismaExceptionFilter,
+  AllExceptionsFilter,
+} from './common/filters';
 
 async function bootstrap() {
   const logger = WinstonModule.createLogger({
@@ -44,6 +49,14 @@ async function bootstrap() {
   );
 
   app.setGlobalPrefix('api');
+
+  // Global Exception Filters (order matters - most specific to most general)
+  app.useGlobalFilters(
+    new PrismaExceptionFilter(),
+    new HttpExceptionFilter(),
+    new AllExceptionsFilter(),
+  );
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
